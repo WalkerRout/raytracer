@@ -7,7 +7,7 @@
 #include <memory>
 #include <array>
 
-#define STACK_LOC_CUTOFF (16*256)
+#define STACK_LOC_CUTOFF (128*128)
 
 namespace raymath {
 
@@ -71,44 +71,50 @@ public:
   std::array<double, 4> xyzw{0, 0, 0, 1};
 };
 
+// DID SOMEONE SAY CODE BLOAT? (bless link time)
 // rows, cols
 // i   , j
 // y   , x
 template <size_t N, size_t M>
 struct Matrix {
   using storage_t = std::array<double, N*M>;
-  using storage_ptr = std::unique_ptr<storage_t>;
+  using data_t = std::conditional<N*M >= STACK_LOC_CUTOFF, std::unique_ptr<storage_t>, storage_t>::type;
 
-  static const bool what = is_trivially_copyable<T>::value;
-  typedef typename std::conditional<what, storage_t, storage_ptr>::type data_type;
+  Matrix() {
+    if constexpr (N*M >= STACK_LOC_CUTOFF)
+      data = std::make_unique<storage_t>();
+  }
 
-  Matrix() = default;
   template <typename... Args>
   Matrix(Args&& ...args) {
     if constexpr (N*M >= STACK_LOC_CUTOFF) {
-      data = std::unique_ptr<storage_t>({args...});
+      data = std::make_unique<storage_t>((storage_t){args...});
     } else {
-      data = std::array<double, N*M>{args...};
+      data = storage_t{args...};
     }
   }
 
   auto get_rows() const -> size_t;
   auto get_cols() const -> size_t;
   auto get_data() const -> const storage_t&;
-  auto set(size_t i, size_t j, double x);
+  auto get_data_ref() -> storage_t&;
+  auto set(size_t i, size_t j, double x) -> void;
   auto get(size_t i, size_t j) const -> double;
+  auto get_ref(size_t i, size_t j) -> double&;
 
-  auto operator+(Matrix& rhs) const -> Matrix;
-  auto operator-(Matrix& rhs) const -> Matrix;
-  auto operator/(Matrix& rhs) const -> Matrix;
-  auto operator*(Matrix& rhs) const -> Matrix;
+  auto operator+(const Matrix& rhs) const -> Matrix;
+  auto operator-(const Matrix& rhs) const -> Matrix;
+  auto operator/(const Matrix& rhs) const -> Matrix;
+  auto hadamard(const Matrix& rhs) const -> Matrix;
 
-  template <size_t TN, size_t TM>
-  friend auto operator<<(std::ostream& os, const Matrix<TN, TM>& mat) -> std::ostream&;
+  template <size_t P, size_t Q> // * (dot product)
+  auto operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q>;
 
-public:
-  size_t rows{N};
-  size_t cols{M};
+  auto on_heap() const -> bool;
+
+  template <size_t P, size_t Q>
+  friend auto operator<<(std::ostream& os, const Matrix<P, Q>& mat) -> std::ostream&;
+
 private:
   data_t data;
 };
@@ -119,61 +125,78 @@ auto Matrix<N, M>::get_rows() const -> size_t { return N; }
 template <size_t N, size_t M>
 auto Matrix<N, M>::get_cols() const -> size_t { return M; }
 
+#define GET_DATA_COMMON_BODY \
+  do {  \
+    if constexpr (N*M >= STACK_LOC_CUTOFF) { \
+      return *data; \
+    } else { \
+      return data; \
+    } \
+  } while(0)
+
 template <size_t N, size_t M>
-auto Matrix<N, M>::get_data() const -> const Matrix::storage_t& {
-  if(std::holds_alternative<Matrix::storage_t>(data)) {
-    return std::get<Matrix::storage_t>(data);
-  } else {
-    return *std::get<std::unique_ptr<Matrix::storage_t>>(data);
-  }
-}
+auto Matrix<N, M>::get_data() const -> const Matrix::storage_t& { GET_DATA_COMMON_BODY; }
+
+template <size_t N, size_t M>
+auto Matrix<N, M>::get_data_ref() -> Matrix::storage_t& { GET_DATA_COMMON_BODY; }
 
 // y = i, x = j
 template <size_t N, size_t M>
-auto Matrix<N, M>::get(size_t i, size_t j) const -> double {
+auto Matrix<N, M>::get(const size_t i, const size_t j) const -> double {
   assert(i < N && j < M && "Indices i and j out of bounds for matrix");
   return get_data()[i * M + j];
 }
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::set(size_t i, size_t j, double x) {
+auto Matrix<N, M>::get_ref(const size_t i, const size_t j) -> double& {
   assert(i < N && j < M && "Indices i and j out of bounds for matrix");
-  data[i * M + j] = x;
+  return get_data_ref()[i * M + j];
 }
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::operator+(Matrix& rhs) const -> Matrix { return Matrix<N, M>(); }
+auto Matrix<N, M>::set(const size_t i, const size_t j, double x) -> void {
+  assert(i < N && j < M && "Indices i and j out of bounds for matrix");
+  get_data_ref()[i * M + j] = x;
+}
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::operator-(Matrix& rhs) const -> Matrix { return Matrix<N, M>(); }
+auto Matrix<N, M>::operator+(const Matrix& rhs) const -> Matrix { return Matrix<N, M>(); }
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::operator/(Matrix& rhs) const -> Matrix { return Matrix<N, M>(); }
+auto Matrix<N, M>::operator-(const Matrix& rhs) const -> Matrix { return Matrix<N, M>(); }
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::operator*(Matrix& rhs) const -> Matrix {
-  auto result = Matrix<M, rhs.rows()>();
+auto Matrix<N, M>::operator/(const Matrix& rhs) const -> Matrix { return Matrix<N, M>(); }
 
-  for(int i = 0; i < N; ++i) {
+template <size_t N, size_t M>
+template <size_t P, size_t Q>
+auto Matrix<N, M>::operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> {
+  static_assert(M == P && "Self cols must equal other rows");
+  // a.rows = N
+  // a.cols = M
+  // b.rows = P
+  // b.cols = Q
+  auto result = Matrix<N, Q>();
 
-  }
-
-
- /*
- for (int i = 0; i < a.rows; ++i)
-    for (int j = 0; j < b.cols; ++j)
-      for (int k = 0; k < b.rows; ++k)
-        *mat_get_ptr(&c, i, j) += mat_get(a, i, k) * mat_get(b, k, j);
-  */
+  for(int i = 0; i < N; ++i)
+    for(int j = 0; j < Q; ++j)
+      for(int k = 0; k < P; ++k) {
+        result.get_ref(i, j) += get(i, k) * rhs.get(k, j);
+      }
 
   return result;
+}
+
+template <size_t N, size_t M>
+auto Matrix<N, M>::on_heap() const -> bool {
+  return std::is_same<Matrix::data_t, std::unique_ptr<Matrix::storage_t>>::value;
 }
 
 template <size_t N, size_t M>
 auto operator<<(std::ostream& os, const Matrix<N, M>& mat) -> std::ostream& {
   for(int i = 0; i < N; ++i) {
     for(int j = 0; j < M; ++j) {
-      os << mat.data[i * M + j];
+      os << mat.get_data()[i * M + j];
       os << ' ';
     }
     os << '\n';

@@ -1,11 +1,11 @@
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 
 #include "gtest/gtest.h"
 
 #include "raymath.h"
-#include "raymath.cpp"
 
 template <typename T>
 static constexpr auto double_cmp(const T a, const T b, const T epsilon) -> bool {
@@ -201,4 +201,12 @@ TEST(test_raymath, test_matrix_4x4) {
 
   EXPECT_EQ(matrix.get(2, 3), 5.);
   EXPECT_EQ(matrix.get_data()[2 * 4 + 3], 5.);
+}
+
+TEST(test_raymath, test_matrix_130x130) {
+  auto matrix = raymath::Matrix<130, 130>(); // allocated on the heap
+  matrix.set(129, 129, 42.);
+
+  EXPECT_EQ(matrix.on_heap(), true);
+  EXPECT_EQ(matrix.get(129, 129), 42.);
 }
