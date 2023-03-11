@@ -1,6 +1,7 @@
 #ifndef raymath_H
 #define raymath_H
 
+#include <algorithm>
 #include <iostream>
 #include <variant>
 #include <cassert>
@@ -117,7 +118,7 @@ struct Matrix {
   auto operator==(const Matrix& rhs) const -> bool;
 
   template <size_t P, size_t Q> // * (dot product)
-  auto operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q>;
+  auto operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requires (M == P);
 
   auto on_heap() const -> bool;
 
@@ -232,8 +233,7 @@ auto Matrix<N, M>::operator==(const Matrix& rhs) const -> bool {
 
 template <size_t N, size_t M>
 template <size_t P, size_t Q>
-auto Matrix<N, M>::operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> {
-  static_assert(M == P && "Self cols must equal other rows");
+auto Matrix<N, M>::operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requires (M == P) {
   auto result = Matrix<N, Q>();
 
   for(int i = 0; i < N; ++i)

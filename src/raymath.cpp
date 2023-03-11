@@ -60,7 +60,12 @@ auto Vector::operator==(const Vector rhs) const -> bool {
 }
 
 auto operator<<(std::ostream& os, Vector vector) -> std::ostream& {
-  return os << "V(" << vector.xyzw[0] << ", " << vector.xyzw[1] << ", " << vector.xyzw[2] << ")";
+  return os 
+    << "V(" 
+    << vector.xyzw[0] << ", " 
+    << vector.xyzw[1] << ", " 
+    << vector.xyzw[2] 
+    << ")";
 }
 
 auto Vector::dot(Vector rhs) const -> double {
@@ -81,13 +86,23 @@ auto Vector::cross(Vector rhs) const -> Vector {
 }
 
 auto Vector::magnitude(void) const -> double {
-  return std::sqrt(std::pow(xyzw[0], 2) + std::pow(xyzw[1], 2) + std::pow(xyzw[2], 2) + std::pow(xyzw[3], 2));
+  return std::sqrt(
+    std::pow(xyzw[0], 2) + 
+    std::pow(xyzw[1], 2) + 
+    std::pow(xyzw[2], 2) + 
+    std::pow(xyzw[3], 2)
+  );
 }
 
 auto Vector::normalize(void) const -> Vector {
   auto magnitude = this->magnitude();
   auto vector = Vector();
-  vector.xyzw = {xyzw[0] / magnitude, xyzw[1] / magnitude, xyzw[2] / magnitude, xyzw[3] / magnitude};
+  vector.xyzw = {
+    xyzw[0] / magnitude, 
+    xyzw[1] / magnitude, 
+    xyzw[2] / magnitude, 
+    xyzw[3] / magnitude
+  };
   return vector;
 }
 
@@ -149,7 +164,12 @@ auto Point::operator==(const Point rhs) const -> bool {
 }
 
 auto operator<<(std::ostream& os, Point point) -> std::ostream& {
-  return os << "P(" << point.xyzw[0] << ", " << point.xyzw[1] << ", " << point.xyzw[2] << ")";
+  return os 
+    << "P(" 
+    << point.xyzw[0] << ", " 
+    << point.xyzw[1] << ", " 
+    << point.xyzw[2] 
+    << ")";
 }
 
 // matrix methods are in header for SFINAE resolution
