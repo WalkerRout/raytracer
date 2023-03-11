@@ -11,7 +11,9 @@
 #include <array>
 #include <cmath>
 
+#ifndef STACK_LOC_CUTOFF
 #define STACK_LOC_CUTOFF (128*128)
+#endif
 
 namespace raymath {
 
@@ -114,6 +116,8 @@ struct Matrix {
   auto operator-(const Matrix& rhs) const -> Matrix;
   auto operator/(const Matrix& rhs) const -> Matrix;
   auto hadamard(const Matrix& rhs) const -> Matrix;
+  template <size_t P, size_t Q>
+  auto operator==(const Matrix<P, Q>& rhs) const -> bool requires (N != P && M != Q);
   auto operator==(const Matrix& rhs) const -> bool;
 
   template <size_t P, size_t Q> // * (dot product)
@@ -216,6 +220,10 @@ auto Matrix<N, M>::hadamard(const Matrix& rhs) const -> Matrix {
   
   return result;
 }
+
+template <size_t N, size_t M>
+template <size_t P, size_t Q>
+auto Matrix<N, M>::operator==(const Matrix<P, Q>& rhs) const -> bool requires (N != P && M != Q) { return false; }
 
 template <size_t N, size_t M>
 auto Matrix<N, M>::operator==(const Matrix& rhs) const -> bool {

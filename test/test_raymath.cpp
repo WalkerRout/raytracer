@@ -5,7 +5,9 @@
 
 #include "gtest/gtest.h"
 
+#define STACK_LOC_CUTOFF (128*128) // for the purposes of consistency within tests
 #include "raymath.h"
+#undef  STACK_LOC_CUTOFF // dont interfere with anyplace else it is defined
 
 TEST(test_raymath, test_vector) {
   auto point = raymath::Vector({1, 2, 3});
@@ -275,3 +277,25 @@ TEST(test_raymath, test_matrix130x130_dot_matrix130x5) {
   auto test = raymath::Matrix<130, 5>();
   EXPECT_EQ(matrix_a * matrix_b, test);
 }
+
+
+TEST(test_raymath, test_stack_matrix_transpose) {
+  auto matrix_a = raymath::Matrix<4, 4>();
+  auto matrix_b = raymath::Matrix<12, 8>();
+
+  auto test_a = raymath::Matrix<4, 4>();
+  auto test_b = raymath::Matrix<8, 12>();
+  EXPECT_EQ(matrix_a.transpose(), test_a);
+  EXPECT_EQ(matrix_b.transpose(), test_b);
+}
+
+TEST(test_raymath, test_heap_matrix_transpose) {
+  auto matrix_a = raymath::Matrix<130, 130>();
+  auto matrix_b = raymath::Matrix<140, 130>();
+
+  auto test_a = raymath::Matrix<130, 130>();
+  auto test_b = raymath::Matrix<130, 140>();
+  EXPECT_EQ(matrix_a.transpose(), test_a);
+  EXPECT_EQ(matrix_b.transpose(), test_b);
+}
+
