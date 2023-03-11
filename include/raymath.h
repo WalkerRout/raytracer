@@ -96,11 +96,10 @@ struct Matrix {
 
   template <typename... Args>
   Matrix(Args&& ...args) {
-    if constexpr (N*M >= STACK_LOC_CUTOFF) {
+    if constexpr (N*M >= STACK_LOC_CUTOFF)
       data = std::make_unique<storage_t>((storage_t){args...});
-    } else {
+    else
       data = storage_t{args...};
-    }
   }
 
   auto get_rows() const -> size_t;
@@ -119,6 +118,7 @@ struct Matrix {
 
   template <size_t P, size_t Q> // * (dot product)
   auto operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requires (M == P);
+  auto transpose() const -> Matrix<M, N>;
 
   auto on_heap() const -> bool;
 
@@ -240,6 +240,25 @@ auto Matrix<N, M>::operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requ
     for(int j = 0; j < Q; ++j)
       for(int k = 0; k < P; ++k)
         result.get_ref(i, j) += get(i, k) * rhs.get(k, j);
+
+  return result;
+}
+
+template <size_t N, size_t M>
+auto Matrix<N, M>::transpose() const -> Matrix<M, N> {
+  auto result = Matrix<M, N>();
+
+  if constexpr (N == M) {
+    // this is based around the assumption that memcpy does not require void *src to be writeable...
+    memcpy(result.get_data_ref().data(), get_data().data(), sizeof get_data());
+    for(int i = 0; i < N; ++i)
+      for(int j = i + 1; j < M; ++j)
+        std::swap(result.get_ref(j, i), result.get_ref(i, j));
+  } else {
+    for(int i = 0; i < N; ++i)
+      for(int j = 0; j < M; ++j)
+        result.set(j, i, get(i, j));
+  }
 
   return result;
 }
