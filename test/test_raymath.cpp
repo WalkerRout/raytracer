@@ -236,18 +236,33 @@ TEST(test_raymath, test_matrix4x4_div_matrix4x4) {
 }
 
 TEST(test_raymath, test_matrix4x4_hadamard_matrix4x4) {
-  auto matrix_a = raymath::Matrix<4, 4>();
-  auto matrix_b = raymath::Matrix<4, 4>();
+  auto matrix_a = raymath::Matrix<4, 4>(1., 2., 3., 4., 5.);
+  auto matrix_b = raymath::Matrix<4, 4>(1., 2., 3., 4., 5.);
 
-  auto test = raymath::Matrix<4, 4>();
+  auto test = raymath::Matrix<4, 4>(1., 4., 9., 16., 25.);
   EXPECT_EQ(matrix_a.hadamard(matrix_b), test);
 }
 
 TEST(test_raymath, test_matrix4x4_dot_matrix4x4) {
-  auto matrix_a = raymath::Matrix<4, 4>();
-  auto matrix_b = raymath::Matrix<4, 4>();
+  auto matrix_a = raymath::Matrix<4, 4>(
+    1., 2., 3., 4.,
+    5., 6., 7., 8.,
+    9., 8., 7., 6.,
+    5., 4., 3., 2.
+  );
+  auto matrix_b = raymath::Matrix<4, 4>(
+    -2., 1., 2.,  3.,
+     3., 2., 1., -1.,
+     4., 3., 6.,  5.,
+     1., 2., 7.,  8.
+  );
 
-  auto test = raymath::Matrix<4, 4>();
+  auto test = raymath::Matrix<4, 4>(
+    20., 22., 50.,  48.,
+    44., 54., 114., 108.,
+    40., 58., 110., 102.,
+    16., 26., 46.,  42.
+  );
   EXPECT_EQ(matrix_a * matrix_b, test);
 }
 
@@ -256,6 +271,7 @@ TEST(test_raymath, test_matrix130x130_dot_matrix130x5) {
   auto matrix_a = raymath::Matrix<130, 130>();
   auto matrix_b = raymath::Matrix<130, 5>();
 
+  // make sure that heap allocated matrices and stack allocated matrices have same working API
   auto test = raymath::Matrix<130, 5>();
   EXPECT_EQ(matrix_a * matrix_b, test);
 }

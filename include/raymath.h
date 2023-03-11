@@ -90,6 +90,7 @@ struct Matrix {
   Matrix() {
     if constexpr (N*M >= STACK_LOC_CUTOFF)
       data = std::make_unique<storage_t>();
+    memset((void*)get_data_ref().data(), 0, sizeof get_data());
   }
 
   template <typename... Args>
@@ -223,8 +224,9 @@ auto Matrix<N, M>::operator==(const Matrix& rhs) const -> bool {
   auto data = get_data();
   auto rhs_data = rhs.get_data();
 
-  return std::equal(data.cbegin(), data.cend(), rhs_data.cbegin(), [epsilon=pow(0.1, 40)](const auto& a, const auto& b) { 
-    return std::abs(a - b) <= epsilon; 
+  return std::equal(data.cbegin(), data.cend(), rhs_data.cbegin(), [](const auto& a, const auto& b) {
+    // std::numeric_limits<double>::epsilon() 
+    return std::abs(a - b) <= pow(0.1, 40); 
   });
 }
 
