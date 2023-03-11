@@ -4,12 +4,19 @@
 #include <iostream>
 #include <variant>
 #include <cassert>
+#include <cstring>
+#include <limits>
 #include <memory>
 #include <array>
+#include <cmath>
 
 #define STACK_LOC_CUTOFF (128*128)
 
 namespace raymath {
+
+// function forward definitions
+template <typename T>
+constexpr auto eqf(const T a, const T b, const T epsilon) -> bool;
 
 class Point;
 struct Vector {
@@ -106,6 +113,7 @@ struct Matrix {
   auto operator-(const Matrix& rhs) const -> Matrix;
   auto operator/(const Matrix& rhs) const -> Matrix;
   auto hadamard(const Matrix& rhs) const -> Matrix;
+  auto operator==(const Matrix& rhs) const -> bool;
 
   template <size_t P, size_t Q> // * (dot product)
   auto operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q>;
@@ -160,29 +168,76 @@ auto Matrix<N, M>::set(const size_t i, const size_t j, double x) -> void {
 }
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::operator+(const Matrix& rhs) const -> Matrix { return Matrix<N, M>(); }
+auto Matrix<N, M>::operator+(const Matrix& rhs) const -> Matrix {
+  auto result = Matrix<N, M>();
+  auto data = get_data();
+  auto rhs_data = rhs.get_data();
+
+  std::transform(data.cbegin(), data.cend(), rhs_data.cbegin(),
+                 result.get_data_ref().begin(), std::plus<double>());
+
+  return result;
+}
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::operator-(const Matrix& rhs) const -> Matrix { return Matrix<N, M>(); }
+auto Matrix<N, M>::operator-(const Matrix& rhs) const -> Matrix {
+  auto result = Matrix<N, M>();
+  auto data = get_data();
+  auto rhs_data = rhs.get_data();
+
+  std::transform(data.cbegin(), data.cend(), rhs_data.cbegin(),
+                 result.get_data_ref().begin(), std::minus<double>());
+  
+  return result;
+}
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::operator/(const Matrix& rhs) const -> Matrix { return Matrix<N, M>(); }
+auto Matrix<N, M>::operator/(const Matrix& rhs) const -> Matrix {
+  auto result = Matrix<N, M>();
+  auto data = get_data();
+  auto rhs_data = rhs.get_data();
+
+  std::transform(data.cbegin(), data.cend(), rhs_data.cbegin(),
+                 result.get_data_ref().begin(), std::divides<double>());
+  
+  return result;
+}
+
+template <size_t N, size_t M>
+auto Matrix<N, M>::hadamard(const Matrix& rhs) const -> Matrix {
+  auto result = Matrix<N, M>();
+  auto data = get_data();
+  auto rhs_data = rhs.get_data();
+
+  std::transform(data.cbegin(), data.cend(), rhs_data.cbegin(),
+                 result.get_data_ref().begin(), std::multiplies<double>());
+  
+  return result;
+}
+
+template <size_t N, size_t M>
+auto Matrix<N, M>::operator==(const Matrix& rhs) const -> bool {
+  // you have no idea how much i want to do this... goddamn floats
+  // memcmp((unsigned char *)get_data().data(), (unsigned char *)rhs.get_data().data(), sizeof get_data());
+  assert(get_data().size() == rhs.get_data().size());
+  auto data = get_data();
+  auto rhs_data = rhs.get_data();
+
+  return std::equal(data.cbegin(), data.cend(), rhs_data.cbegin(), [epsilon=pow(0.1, 40)](const auto& a, const auto& b) { 
+    return std::abs(a - b) <= epsilon; 
+  });
+}
 
 template <size_t N, size_t M>
 template <size_t P, size_t Q>
 auto Matrix<N, M>::operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> {
   static_assert(M == P && "Self cols must equal other rows");
-  // a.rows = N
-  // a.cols = M
-  // b.rows = P
-  // b.cols = Q
   auto result = Matrix<N, Q>();
 
   for(int i = 0; i < N; ++i)
     for(int j = 0; j < Q; ++j)
-      for(int k = 0; k < P; ++k) {
+      for(int k = 0; k < P; ++k)
         result.get_ref(i, j) += get(i, k) * rhs.get(k, j);
-      }
 
   return result;
 }
@@ -202,6 +257,11 @@ auto operator<<(std::ostream& os, const Matrix<N, M>& mat) -> std::ostream& {
     os << '\n';
   }
   return os;
+}
+
+template <typename T>
+constexpr auto eqf(const T a, const T b, const T epsilon) -> bool {
+  return std::abs(a - b) <= (std::max(a, b) * epsilon);
 }
 
 }

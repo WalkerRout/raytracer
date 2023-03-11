@@ -7,11 +7,6 @@
 
 #include "raymath.h"
 
-template <typename T>
-static constexpr auto double_cmp(const T a, const T b, const T epsilon) -> bool {
-  return std::abs(a - b) <= (std::max(a, b) * epsilon);
-}
-
 TEST(test_raymath, test_vector) {
   auto point = raymath::Vector({1, 2, 3});
 
@@ -62,7 +57,7 @@ TEST(test_raymath, test_vector_mul_scalar) {
   auto vector = raymath::Vector({1, 2, 3});
   auto scalar = 2;
 
-  auto test = raymath::Vector({scalar * 1, scalar * 2, scalar * 3});
+  auto test = raymath::Vector({scalar * 1., scalar * 2., scalar * 3.});
   EXPECT_EQ(vector * scalar, test);
 }
 
@@ -113,7 +108,7 @@ TEST(test_raymath, test_vector_normalize) {
   EXPECT_EQ(vector_a.normalize(), test_ab);
   EXPECT_EQ(vector_b.normalize(), test_ab);
   EXPECT_EQ(vector_c.normalize(), test_c);
-  EXPECT_TRUE(double_cmp<double>(vector_c.normalize().magnitude(), 1, std::numeric_limits<double>::epsilon()));
+  EXPECT_TRUE(raymath::eqf<double>(vector_c.normalize().magnitude(), 1, std::numeric_limits<double>::epsilon()));
 }
 
 TEST(test_raymath, test_point) {
@@ -209,4 +204,58 @@ TEST(test_raymath, test_matrix_130x130) {
 
   EXPECT_EQ(matrix.on_heap(), true);
   EXPECT_EQ(matrix.get(129, 129), 42.);
+}
+
+TEST(test_raymath, test_matrix4x4_add_matrix4x4) {
+  auto matrix_a = raymath::Matrix<4, 4>(1., 2., 3., 4., 5.);
+  auto matrix_b = raymath::Matrix<4, 4>(1., 2., 3., 4., 5.);
+
+  auto test = raymath::Matrix<4, 4>(2., 4., 6., 8., 10.);
+  EXPECT_EQ(matrix_a + matrix_b, test);
+}
+
+TEST(test_raymath, test_matrix4x4_sub_matrix4x4) {
+  auto matrix_a = raymath::Matrix<4, 4>(1., 2., 3., 4., 5.);
+  auto matrix_b = raymath::Matrix<4, 4>(1., 2., 3., 4., 5.);
+
+  auto test = raymath::Matrix<4, 4>();
+  EXPECT_EQ(matrix_a - matrix_b, test);
+}
+
+TEST(test_raymath, test_matrix4x4_div_matrix4x4) {
+  auto matrix_a = raymath::Matrix<4, 4>();
+  auto matrix_b = raymath::Matrix<4, 4>(
+    1., 1., 1., 1.,
+    1., 1., 1., 1.,
+    1., 1., 1., 1.,
+    1., 1., 1., 1.
+  );
+
+  auto test = raymath::Matrix<4, 4>();
+  EXPECT_EQ(matrix_a / matrix_b, test);
+}
+
+TEST(test_raymath, test_matrix4x4_hadamard_matrix4x4) {
+  auto matrix_a = raymath::Matrix<4, 4>();
+  auto matrix_b = raymath::Matrix<4, 4>();
+
+  auto test = raymath::Matrix<4, 4>();
+  EXPECT_EQ(matrix_a.hadamard(matrix_b), test);
+}
+
+TEST(test_raymath, test_matrix4x4_dot_matrix4x4) {
+  auto matrix_a = raymath::Matrix<4, 4>();
+  auto matrix_b = raymath::Matrix<4, 4>();
+
+  auto test = raymath::Matrix<4, 4>();
+  EXPECT_EQ(matrix_a * matrix_b, test);
+}
+
+// heap * stack
+TEST(test_raymath, test_matrix130x130_dot_matrix130x5) {
+  auto matrix_a = raymath::Matrix<130, 130>();
+  auto matrix_b = raymath::Matrix<130, 5>();
+
+  auto test = raymath::Matrix<130, 5>();
+  EXPECT_EQ(matrix_a * matrix_b, test);
 }
