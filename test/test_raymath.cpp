@@ -75,7 +75,7 @@ TEST(test_raymath, test_vector_dot_vector) {
   auto vector_a = raymath::Vector({1., 2., 3.});
   auto vector_b = raymath::Vector({2., 3., 4.});
 
-  auto test = 20;
+  auto test = 20.;
   EXPECT_EQ(vector_a.dot(vector_b), test);
 }
 
@@ -90,80 +90,80 @@ TEST(test_raymath, test_vector_cross_vector) {
 }
 
 TEST(test_raymath, test_vector_magnitude) {
-  auto vector_a = raymath::Vector({1, 2, 3});
-  auto vector_b = raymath::Vector({-1, -2, -3});
+  auto vector_a = raymath::Vector({1., 2., 3.});
+  auto vector_b = raymath::Vector({-1., -2., -3.});
 
-  auto test = 14;
+  auto test = 14.;
   // scuffed cast to double since sqrt returns double in order to do double comparison
   EXPECT_EQ(vector_a.magnitude(), (double)std::sqrt(test));
   EXPECT_EQ(vector_b.magnitude(), (double)std::sqrt(test));
 }
 
 TEST(test_raymath, test_vector_normalize) {
-  auto vector_a = raymath::Vector({1, 0, 0});
-  auto vector_b = raymath::Vector({4, 0, 0});
-  auto vector_c = raymath::Vector({1, 2, 3});
+  auto vector_a = raymath::Vector({1., 0., 0.});
+  auto vector_b = raymath::Vector({4., 0., 0.});
+  auto vector_c = raymath::Vector({1., 2., 3.});
 
   auto magn_c = vector_c.magnitude();
-  auto test_ab = raymath::Vector({1, 0, 0});
-  auto test_c = raymath::Vector({1 / magn_c, 2 / magn_c, 3 / magn_c});
+  auto test_ab = raymath::Vector({1., 0., 0.});
+  auto test_c = raymath::Vector({1. / magn_c, 2. / magn_c, 3. / magn_c});
   EXPECT_EQ(vector_a.normalize(), test_ab);
   EXPECT_EQ(vector_b.normalize(), test_ab);
   EXPECT_EQ(vector_c.normalize(), test_c);
-  EXPECT_TRUE(raymath::eqf<double>(vector_c.normalize().magnitude(), 1, std::numeric_limits<double>::epsilon()));
+  EXPECT_TRUE(raymath::eqf<double>(vector_c.normalize().magnitude(), 1., std::numeric_limits<double>::epsilon()));
 }
 
 TEST(test_raymath, test_point) {
-  auto point = raymath::Point({1, 2, 3});
+  auto point = raymath::Point({1., 2., 3.});
 
-  auto test = std::array<double, 4>{1, 2, 3, 1};
+  auto test = raymath::Matrix<4, 1>{1., 2., 3., 1.};
   EXPECT_EQ(point.xyzw, test);
 }
 
 TEST(test_raymath, test_point_plus_vector) {
-  auto point = raymath::Point({1, 2, 3});
-  auto vector = raymath::Vector({1, 2, 3});
+  auto point = raymath::Point({1., 2., 3.});
+  auto vector = raymath::Vector({1., 2., 3.});
 
-  auto test = raymath::Point({2, 4, 6});
+  auto test = raymath::Point({2., 4., 6.});
   EXPECT_EQ(point + vector, test);
 }
 
 TEST(test_raymath, test_negate_point) {
-  auto point = raymath::Point({1, 2, 3});
+  auto point = raymath::Point({1., 2., 3.});
 
-  auto test = raymath::Point({-1, -2, -3});
+  auto test = raymath::Point({-1., -2., -3.});
   EXPECT_EQ(-point, test);
 }
 
 TEST(test_raymath, test_point_sub_point) {
-  auto point_a = raymath::Point({1, 2, 3});
-  auto point_b = raymath::Point({1, 2, 3});
+  auto point_a = raymath::Point({1., 2., 3.});
+  auto point_b = raymath::Point({1., 2., 3.});
 
-  auto test = raymath::Vector({0, 0, 0});
+  auto test = raymath::Vector({0., 0., 0.});
   EXPECT_EQ(point_a - point_b, test);
 }
 
 TEST(test_raymath, test_point_sub_vector) {
-  auto point = raymath::Point({1, 2, 3});
-  auto vector = raymath::Vector({1, 2, 3});
+  auto point = raymath::Point({1., 2., 3.});
+  auto vector = raymath::Vector({1., 2., 3.});
 
-  auto test = raymath::Point({0, 0, 0});
+  auto test = raymath::Point({0., 0., 0.});
   EXPECT_EQ(point - vector, test);
 }
 
 TEST(test_raymath, test_point_mul_scalar) {
-  auto point = raymath::Point({1, 2, 3});
-  auto scalar = 2.0;
+  auto point = raymath::Point({1., 2., 3.});
+  auto scalar = 2.;
 
-  auto test = raymath::Point({scalar * 1, scalar * 2, scalar * 3});
+  auto test = raymath::Point({scalar * 1., scalar * 2., scalar * 3.});
   EXPECT_EQ(point * scalar, test);
 }
 
 TEST(test_raymath, test_point_div_scalar) {
-  auto point = raymath::Point({4, 4, 4});
-  auto scalar = 2.0;
+  auto point = raymath::Point({4., 4., 4.});
+  auto scalar = 2.;
 
-  auto test = raymath::Point({4 / scalar, 4 / scalar, 4 / scalar});
+  auto test = raymath::Point({4. / scalar, 4. / scalar, 4. / scalar});
   EXPECT_EQ(point / scalar, test);
 }
 
@@ -278,7 +278,6 @@ TEST(test_raymath, test_matrix130x130_dot_matrix130x5) {
   EXPECT_EQ(matrix_a * matrix_b, test);
 }
 
-
 TEST(test_raymath, test_stack_matrix_transpose) {
   auto matrix_a = raymath::Matrix<4, 4>();
   auto matrix_b = raymath::Matrix<12, 8>();
@@ -299,3 +298,38 @@ TEST(test_raymath, test_heap_matrix_transpose) {
   EXPECT_EQ(matrix_b.transpose(), test_b);
 }
 
+TEST(test_raymath, test_identity_matrix) {
+  auto matrix = raymath::Matrix<4, 4>::identity();
+
+  auto test = raymath::Matrix<4, 4>(
+    1., 0., 0., 0.,
+    0., 1., 0., 0.,
+    0., 0., 1., 0.,
+    0., 0., 0., 1.
+  );
+  EXPECT_EQ(matrix, test);
+}
+
+TEST(test_raymath, test_matrix_dot_identity_matrix) {
+  auto matrix_a = raymath::Matrix<4, 4>(1., 2., 3., 4.);
+  auto matrix_b = raymath::Matrix<4, 4>::identity();
+
+  auto test = raymath::Matrix<4, 4>(1., 2., 3., 4.); // same as matrix_a
+  EXPECT_EQ(matrix_a * matrix_b, test);
+}
+
+TEST(test_raymath, test_matrix_dot_vector) {
+  auto matrix = raymath::Matrix<4, 4>(1.);
+  auto vector = raymath::Vector({1., 2., 3.});
+
+  auto test = raymath::Matrix<4, 1>(1.);
+  EXPECT_EQ(matrix * vector.xyzw, test);
+}
+
+TEST(test_raymath, test_matrix_dot_point) {
+  auto matrix = raymath::Matrix<4, 4>(1.);
+  auto point = raymath::Point({1., 2., 3.});
+
+  auto test = raymath::Matrix<4, 1>(1.);
+  EXPECT_EQ(matrix * point.xyzw, test);
+}

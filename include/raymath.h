@@ -3,14 +3,14 @@
 
 #include <algorithm>
 #include <iostream>
-#include <variant>
 #include <cassert>
 #include <cstring>
-#include <limits>
+//#include <limits>
 #include <memory>
 #include <array>
 #include <cmath>
 
+// used to determine whether or not to store matrix on stack or heap
 #ifndef STACK_LOC_CUTOFF
 #define STACK_LOC_CUTOFF (128*128)
 #endif
@@ -21,10 +21,6 @@ namespace raymath {
 template <typename T>
 constexpr auto eqf(const T a, const T b, const T epsilon) -> bool;
 
-// DID SOMEONE SAY CODE BLOAT? (bless link time)
-// rows, cols
-// i   , j
-// y   , x
 template <size_t N, size_t M>
 struct Matrix {
   using storage_t = std::array<double, N*M>;
@@ -44,22 +40,26 @@ struct Matrix {
       data = storage_t{args...};
   }
 
+  // Rule of Zero (though no copy operations because of std::unique_ptr)
+
+  static auto identity(void) -> Matrix requires (N == M);
+
   auto get_rows() const -> size_t;
   auto get_cols() const -> size_t;
   auto get_data() const -> const storage_t&;
   auto get_data_ref() -> storage_t&;
   auto set(const size_t i, const size_t j, const double x) -> void;
-  auto get(const size_t i, const size_t j) const -> double; // equivalent to []
+  auto get(const size_t i, const size_t j) const -> double;
   auto get_ref(const size_t i, const size_t j) -> double&;
 
   auto operator+(const Matrix& rhs) const -> Matrix;
   auto operator-(const Matrix& rhs) const -> Matrix;
   auto operator/(const Matrix& rhs) const -> Matrix;
   auto hadamard(const Matrix& rhs) const -> Matrix;
-  template <size_t P, size_t Q>
+  template <size_t P, size_t Q> 
   auto operator==(const Matrix<P, Q>& rhs) const -> bool requires (N != P && M != Q);
   auto operator==(const Matrix& rhs) const -> bool;
-  auto operator[](const size_t i) const -> double; // equivalent to get
+  auto operator[](const size_t i) const -> double;
 
   template <size_t P, size_t Q>
   friend auto operator<<(std::ostream& os, const Matrix<P, Q>& mat) -> std::ostream&;
@@ -144,6 +144,16 @@ public:
 };
 
 template <size_t N, size_t M>
+auto Matrix<N, M>::identity(void) -> Matrix requires (N == M) {
+  auto result = Matrix<N, M>();
+
+  for(int i = 0; i < N; ++i)
+    result.set(i, i, 1.);
+
+  return result;
+}
+
+template <size_t N, size_t M>
 auto Matrix<N, M>::get_rows() const -> size_t { return N; }
 
 template <size_t N, size_t M>
@@ -164,7 +174,6 @@ auto Matrix<N, M>::get_data() const -> const Matrix::storage_t& { GET_DATA_COMMO
 template <size_t N, size_t M>
 auto Matrix<N, M>::get_data_ref() -> Matrix::storage_t& { GET_DATA_COMMON_BODY; }
 
-// y = i, x = j
 template <size_t N, size_t M>
 auto Matrix<N, M>::get(const size_t i, const size_t j) const -> double {
   assert(i < N && j < M && "Indices i and j out of bounds for matrix");
