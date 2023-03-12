@@ -22,10 +22,13 @@ auto main() -> int {
   auto wind_speed = raymath::Vector({-0.01, 0, 0});
   auto environment = launch::Environment(gravity, wind_speed);
 
-  while(projectile.position.xyzw[1] > 0) {
+  while(projectile.position.xyzw.get_data_ref()[1] > 0) {
     projectile = tick(environment, projectile);
-    canvas.set_pixel(projectile.position.xyzw[0], 550 - projectile.position.xyzw[1], canvas::Color::black());
-    //std::cout << projectile.raymath << "\n";
+    canvas.set_pixel(
+      projectile.position.xyzw.get_data_ref()[0], 
+      550 - projectile.position.xyzw.get_data_ref()[1], 
+      canvas::Color::black()
+    );
   }
 
   canvas.to_disk("test.ppm");

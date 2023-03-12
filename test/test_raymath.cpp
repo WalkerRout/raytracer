@@ -10,53 +10,53 @@
 #undef  STACK_LOC_CUTOFF // dont interfere with anyplace else it is defined
 
 TEST(test_raymath, test_vector) {
-  auto point = raymath::Vector({1, 2, 3});
+  auto point = raymath::Vector({1., 2., 3.});
 
-  auto test = std::array<double, 4>{1, 2, 3, 0};
+  auto test = raymath::Matrix<4, 1>{1., 2., 3., 0.};
   EXPECT_EQ(point.xyzw, test);
 }
 
 TEST(test_raymath, test_vector_plus_vector) {
-  auto vector_a = raymath::Vector({1, 2, 3});
-  auto vector_b = raymath::Vector({1, 2, 3});
+  auto vector_a = raymath::Vector({1., 2., 3.});
+  auto vector_b = raymath::Vector({1., 2., 3.});
 
-  auto test = raymath::Vector({2, 4, 6});
+  auto test = raymath::Vector({2., 4., 6.});
   EXPECT_EQ(vector_a + vector_b, test);
 }
 
 TEST(test_raymath, test_vector_plus_point) {
-  auto point = raymath::Point({1, 2, 3});
-  auto vector = raymath::Vector({1, 2, 3});
+  auto point = raymath::Point({1., 2., 3.});
+  auto vector = raymath::Vector({1., 2., 3.});
 
-  auto test = raymath::Point({2, 4, 6});
+  auto test = raymath::Point({2., 4., 6.});
   EXPECT_EQ(vector + point, test);
 }
 
 TEST(test_raymath, test_negate_vector) {
-  auto vector = raymath::Vector({1, 2, 3});
+  auto vector = raymath::Vector({1., 2., 3.});
 
-  auto test = raymath::Vector({-1, -2, -3});
+  auto test = raymath::Vector({-1., -2., -3.});
   EXPECT_EQ(-vector, test);
 }
 
 TEST(test_raymath, test_vector_sub_vector) {
-  auto vector_a = raymath::Vector({1, 2, 3});
-  auto vector_b = raymath::Vector({1, 2, 3});
+  auto vector_a = raymath::Vector({1., 2., 3.});
+  auto vector_b = raymath::Vector({1., 2., 3.});
 
-  auto test = raymath::Vector({0, 0, 0});
+  auto test = raymath::Vector({0., 0., 0.});
   EXPECT_EQ(vector_a - vector_b, test);
 }
 
 TEST(test_raymath, test_vector_sub_zero) {
   auto vector_a = raymath::Vector::zero();
-  auto vector_b = raymath::Vector({1, 2, 3});
+  auto vector_b = raymath::Vector({1., 2., 3.});
 
-  auto test = raymath::Vector({-1, -2, -3});
+  auto test = raymath::Vector({-1., -2., -3.});
   EXPECT_EQ(vector_a - vector_b, test);
 }
 
 TEST(test_raymath, test_vector_mul_scalar) {
-  auto vector = raymath::Vector({1, 2, 3});
+  auto vector = raymath::Vector({1., 2., 3.});
   auto scalar = 2;
 
   auto test = raymath::Vector({scalar * 1., scalar * 2., scalar * 3.});
@@ -64,27 +64,27 @@ TEST(test_raymath, test_vector_mul_scalar) {
 }
 
 TEST(test_raymath, test_vector_div_scalar) {
-  auto vector = raymath::Vector({4, 4, 4});
+  auto vector = raymath::Vector({4., 4., 4.});
   auto scalar = 2.0;
 
-  auto test = raymath::Vector({4 / scalar, 4 / scalar, 4 / scalar});
+  auto test = raymath::Vector({4. / scalar, 4. / scalar, 4. / scalar});
   EXPECT_EQ(vector / scalar, test);
 }
 
 TEST(test_raymath, test_vector_dot_vector) {
-  auto vector_a = raymath::Vector({1, 2, 3});
-  auto vector_b = raymath::Vector({2, 3, 4});
+  auto vector_a = raymath::Vector({1., 2., 3.});
+  auto vector_b = raymath::Vector({2., 3., 4.});
 
   auto test = 20;
   EXPECT_EQ(vector_a.dot(vector_b), test);
 }
 
 TEST(test_raymath, test_vector_cross_vector) {
-  auto vector_a = raymath::Vector({1, 2, 3});
-  auto vector_b = raymath::Vector({2, 3, 4});
+  auto vector_a = raymath::Vector({1., 2., 3.});
+  auto vector_b = raymath::Vector({2., 3., 4.});
 
-  auto test_ab = raymath::Vector({-1, 2, -1});
-  auto test_ba = raymath::Vector({1, -2, 1});
+  auto test_ab = raymath::Vector({-1., 2., -1.});
+  auto test_ba = raymath::Vector({1., -2., 1.});
   EXPECT_EQ(vector_a.cross(vector_b), test_ab);
   EXPECT_EQ(vector_b.cross(vector_a), test_ba);
 }

@@ -35,7 +35,6 @@ auto Color::random(void) -> Color {
   // color bound is [p, q]
   double p = 0;
   double q = 1;
-
   double r = std::rand();
   double g = std::rand();
   double b = std::rand();
@@ -66,9 +65,11 @@ auto Color::operator*(double scalar) const -> Color {
 
 auto Color::operator==(Color rhs) const -> bool {
   auto result = true;
+
   result &= rhs.rgb[0] == rgb[0];
   result &= rhs.rgb[1] == rgb[1];
   result &= rhs.rgb[2] == rgb[2];
+
   return result;
 }
 
@@ -76,8 +77,10 @@ auto Color::string() const -> std::string {
   auto scale = [](double x, double mul) -> double {
     return std::clamp(round(x * mul), 0., mul);
   };
+
   auto oss = std::ostringstream();
   oss << scale(rgb[0], 255) << " " << scale(rgb[1], 255) << " " << scale(rgb[2], 255);
+
   return oss.str();
 }
 

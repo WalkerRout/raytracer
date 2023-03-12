@@ -21,66 +21,6 @@ namespace raymath {
 template <typename T>
 constexpr auto eqf(const T a, const T b, const T epsilon) -> bool;
 
-class Point;
-struct Vector {
-  Vector() = default;
-  Vector(std::array<double, 3> il) {
-    xyzw[0] = il[0];
-    xyzw[1] = il[1];
-    xyzw[2] = il[2];
-    xyzw[3] = 0.0;
-  }
-
-  // Rule of Zero
-
-  static auto zero(void) -> Vector;
-
-  auto operator+(Vector rhs) const -> Vector;
-  auto operator+(Point rhs) const -> Point;
-  auto operator-(void) const -> Vector;
-  auto operator-(Vector rhs) const -> Vector;
-  auto operator*(double scalar) const -> Vector;
-  auto operator/(double scalar) const -> Vector;
-  auto operator==(const Vector rhs) const -> bool;
-
-  friend auto operator<<(std::ostream& os, Vector vector) -> std::ostream&;
-
-  auto dot(Vector rhs) const -> double;
-  auto cross(Vector rhs) const -> Vector;
-  auto magnitude(void) const -> double;
-  auto normalize(void) const -> Vector;
-
-public:
-  std::array<double, 4> xyzw{0, 0, 0, 0};
-};
-
-struct Point {
-  Point() = default;
-  Point(std::array<double, 3> il) {
-    xyzw[0] = il[0];
-    xyzw[1] = il[1];
-    xyzw[2] = il[2];
-    xyzw[3] = 1.0;
-  }
-
-  // Rule of Zero
-
-  static auto origin(void) -> Point;
-
-  auto operator+(Vector rhs) const -> Point;
-  auto operator-(void) const -> Point;
-  auto operator-(Point rhs) const -> Vector;
-  auto operator-(Vector rhs) const -> Point;
-  auto operator*(double scalar) const -> Point;
-  auto operator/(double scalar) const -> Point;
-  auto operator==(const Point rhs) const -> bool;
-
-  friend auto operator<<(std::ostream& os, Point point) -> std::ostream&;
-
-public:
-  std::array<double, 4> xyzw{0, 0, 0, 1};
-};
-
 // DID SOMEONE SAY CODE BLOAT? (bless link time)
 // rows, cols
 // i   , j
@@ -108,9 +48,9 @@ struct Matrix {
   auto get_cols() const -> size_t;
   auto get_data() const -> const storage_t&;
   auto get_data_ref() -> storage_t&;
-  auto set(size_t i, size_t j, double x) -> void;
-  auto get(size_t i, size_t j) const -> double;
-  auto get_ref(size_t i, size_t j) -> double&;
+  auto set(const size_t i, const size_t j, const double x) -> void;
+  auto get(const size_t i, const size_t j) const -> double; // equivalent to []
+  auto get_ref(const size_t i, const size_t j) -> double&;
 
   auto operator+(const Matrix& rhs) const -> Matrix;
   auto operator-(const Matrix& rhs) const -> Matrix;
@@ -119,18 +59,88 @@ struct Matrix {
   template <size_t P, size_t Q>
   auto operator==(const Matrix<P, Q>& rhs) const -> bool requires (N != P && M != Q);
   auto operator==(const Matrix& rhs) const -> bool;
+  auto operator[](const size_t i) const -> double; // equivalent to get
+
+  template <size_t P, size_t Q>
+  friend auto operator<<(std::ostream& os, const Matrix<P, Q>& mat) -> std::ostream&;
 
   template <size_t P, size_t Q> // * (dot product)
   auto operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requires (M == P);
   auto transpose() const -> Matrix<M, N>;
 
   auto on_heap() const -> bool;
-
-  template <size_t P, size_t Q>
-  friend auto operator<<(std::ostream& os, const Matrix<P, Q>& mat) -> std::ostream&;
-
 private:
   data_t data;
+};
+
+class Point;
+struct Vector {
+  Vector() = default;
+  Vector(std::array<double, 3> il) {
+    auto& ref = xyzw.get_data_ref();
+    ref[0] = il[0];
+    ref[1] = il[1];
+    ref[2] = il[2];
+    ref[3] = 0.0;
+  }
+
+  // Rule of Zero
+
+  static auto zero(void) -> Vector;
+
+  auto operator+(Vector rhs) const -> Vector;
+  auto operator+(Point rhs) const -> Point;
+  auto operator-(void) const -> Vector;
+  auto operator-(Vector rhs) const -> Vector;
+  auto operator*(double scalar) const -> Vector;
+  auto operator/(double scalar) const -> Vector;
+  auto operator==(const Vector rhs) const -> bool;
+
+  friend auto operator<<(std::ostream& os, Vector vector) -> std::ostream&;
+
+  auto set(const size_t i, const double x) -> void;
+  auto get(const size_t i) const -> double;
+  auto get_ref(const size_t i) -> double&;
+
+  auto dot(Vector rhs) const -> double;
+  auto cross(Vector rhs) const -> Vector;
+  auto magnitude(void) const -> double;
+  auto normalize(void) const -> Vector;
+
+public:
+  Matrix<4, 1> xyzw;
+};
+
+struct Point {
+  Point() = default;
+  Point(std::array<double, 3> il) {
+    auto& ref = xyzw.get_data_ref();
+    ref[0] = il[0];
+    ref[1] = il[1];
+    ref[2] = il[2];
+    ref[3] = 1.0;
+  }
+
+  // Rule of Zero
+
+  static auto origin(void) -> Point;
+
+  auto operator+(Vector rhs) const -> Point;
+  auto operator-(void) const -> Point;
+  auto operator-(Point rhs) const -> Vector;
+  auto operator-(Vector rhs) const -> Point;
+  auto operator*(double scalar) const -> Point;
+  auto operator/(double scalar) const -> Point;
+  auto operator==(const Point rhs) const -> bool;
+
+  friend auto operator<<(std::ostream& os, Point point) -> std::ostream&;
+
+  auto set(const size_t i, const double x) -> void;
+  auto get(const size_t i) const -> double;
+  auto get_ref(const size_t i) -> double&;
+
+public:
+  Matrix<4, 1> xyzw;
 };
 
 template <size_t N, size_t M>
@@ -240,6 +250,24 @@ auto Matrix<N, M>::operator==(const Matrix& rhs) const -> bool {
 }
 
 template <size_t N, size_t M>
+auto operator<<(std::ostream& os, const Matrix<N, M>& mat) -> std::ostream& {
+  for(int i = 0; i < N; ++i) {
+    for(int j = 0; j < M; ++j) {
+      os << mat.get_data()[i * M + j];
+      os << ' ';
+    }
+    os << '\n';
+  }
+  return os;
+}
+
+template <size_t N, size_t M>
+auto Matrix<N, M>::operator[](const size_t i) const -> double {
+  assert(i < N*M && "Index out of bounds for matrix");
+  return get_data()[i];
+}
+
+template <size_t N, size_t M>
 template <size_t P, size_t Q>
 auto Matrix<N, M>::operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requires (M == P) {
   auto result = Matrix<N, Q>();
@@ -274,18 +302,6 @@ auto Matrix<N, M>::transpose() const -> Matrix<M, N> {
 template <size_t N, size_t M>
 auto Matrix<N, M>::on_heap() const -> bool {
   return std::is_same<Matrix::data_t, std::unique_ptr<Matrix::storage_t>>::value;
-}
-
-template <size_t N, size_t M>
-auto operator<<(std::ostream& os, const Matrix<N, M>& mat) -> std::ostream& {
-  for(int i = 0; i < N; ++i) {
-    for(int j = 0; j < M; ++j) {
-      os << mat.get_data()[i * M + j];
-      os << ' ';
-    }
-    os << '\n';
-  }
-  return os;
 }
 
 template <typename T>
