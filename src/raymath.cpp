@@ -124,7 +124,7 @@ auto Vector::magnitude(void) const -> double {
 }
 
 auto Vector::normalize(void) const -> Vector {
-  auto magnitude = this->magnitude();
+  auto magnitude = this->magnitude(); // need to specify linkage with this->
   auto vector = Vector();
   vector.xyzw = {
     xyzw[0] / magnitude, 
@@ -138,7 +138,7 @@ auto Vector::normalize(void) const -> Vector {
 
 // point methods
 auto Point::origin(void) -> Point {
-  return Point({0, 0, 0});
+  return Point({0., 0., 0.});
 }
 
 // point + vector = point

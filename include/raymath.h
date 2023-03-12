@@ -41,6 +41,7 @@ struct Matrix {
   }
 
   // Rule of Zero (though no copy operations because of std::unique_ptr)
+  // will have to make a clone() method to leverage rvalue reference produced
 
   static auto identity(void) -> Matrix requires (N == M);
 
@@ -51,6 +52,7 @@ struct Matrix {
   auto set(const size_t i, const size_t j, const double x) -> void;
   auto get(const size_t i, const size_t j) const -> double;
   auto get_ref(const size_t i, const size_t j) -> double&;
+  auto clone(void) -> Matrix; // !!! TODO !!!
 
   auto operator+(const Matrix& rhs) const -> Matrix;
   auto operator-(const Matrix& rhs) const -> Matrix;
@@ -67,6 +69,7 @@ struct Matrix {
   template <size_t P, size_t Q> // * (dot product)
   auto operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requires (M == P);
   auto transpose() const -> Matrix<M, N>;
+  auto submatrix(const size_t row, const size_t col) const -> Matrix<N-1, M-1>;
 
   auto on_heap() const -> bool;
 private:
@@ -285,6 +288,19 @@ auto Matrix<N, M>::operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requ
     for(int j = 0; j < Q; ++j)
       for(int k = 0; k < P; ++k)
         result.get_ref(i, j) += get(i, k) * rhs.get(k, j);
+
+  return result;
+}
+
+template <size_t N, size_t M>
+auto Matrix<N, M>::submatrix(const size_t row, const size_t col) const -> Matrix<N-1, M-1> {
+  auto result = Matrix<N-1, M-1>();
+  
+  int p = 0;
+  for(int i = 0; i < N; ++i)
+    for(int j = 0; j < M; ++j)
+      if(i != row && j != col)
+        result.get_data_ref()[p++] = get(i, j);
 
   return result;
 }

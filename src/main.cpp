@@ -15,7 +15,6 @@ auto main() -> int {
 
   auto start = raymath::Point({0, 1, 0});
   auto velocity = raymath::Vector({1, 1.8, 0}).normalize() * 11.25;
-  std::cout << raymath::Vector({1.6, 1.8, 0}).normalize() << '\n';
   auto projectile = launch::Projectile(start, velocity);
 
   auto gravity = raymath::Vector({0, -0.1, 0});
@@ -25,8 +24,8 @@ auto main() -> int {
   while(projectile.position.xyzw.get_data_ref()[1] > 0) {
     projectile = tick(environment, projectile);
     canvas.set_pixel(
-      projectile.position.xyzw.get_data_ref()[0], 
-      550 - projectile.position.xyzw.get_data_ref()[1], 
+      projectile.position.xyzw[0],
+      550 - projectile.position.xyzw[1],
       canvas::Color::black()
     );
   }

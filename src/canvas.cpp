@@ -33,8 +33,8 @@ auto Color::blue(void) -> Color {
 
 auto Color::random(void) -> Color {
   // color bound is [p, q]
-  double p = 0;
-  double q = 1;
+  double p = 0.;
+  double q = 1.;
   double r = std::rand();
   double g = std::rand();
   double b = std::rand();
@@ -170,7 +170,7 @@ auto Canvas::to_ppm(void) const -> std::string {
 }
 
 auto Canvas::to_disk(std::string file_name) const -> void {
-  auto file = std::ofstream(file_name);
+  auto file = std::ofstream(std::move(file_name));
   file << to_ppm();
   file.close();
 }

@@ -333,3 +333,26 @@ TEST(test_raymath, test_matrix_dot_point) {
   auto test = raymath::Matrix<4, 1>(1.);
   EXPECT_EQ(matrix * point.xyzw, test);
 }
+
+TEST(test_raymath, test_matrix3x3_submatrix) {
+  auto matrix = raymath::Matrix<3, 3>(
+    0., 0., 0.,
+    4., 5., 0.,
+    7., 8., 0.
+  );
+
+  auto test = raymath::Matrix<2, 2>(4., 5., 7., 8.);
+  EXPECT_EQ(matrix.submatrix(0, 2), test);
+}
+
+TEST(test_raymath, test_matrix4x4_submatrix) {
+  auto matrix = raymath::Matrix<4, 4>(
+    1., 2., 0., 3.,
+    4., 5., 0., 6.,
+    7., 8., 0., 9.,
+    0., 0., 0., 0.
+  );
+
+  auto test = raymath::Matrix<3, 3>(1., 2., 3., 4., 5., 6., 7., 8., 9.);
+  EXPECT_EQ(matrix.submatrix(3, 2), test);
+}
