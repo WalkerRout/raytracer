@@ -21,6 +21,7 @@ namespace raymath {
 template <typename T>
 constexpr auto eqf(const T a, const T b, const T epsilon) -> bool;
 
+// use partial specialization constraint for N*M >= STACK_LOC_CUTOFF for unique_ptr
 template <size_t N, size_t M>
 struct Matrix {
   using storage_t = std::array<double, N*M>;
@@ -45,14 +46,13 @@ struct Matrix {
 
   static auto identity(void) -> Matrix requires (N == M);
 
-  auto get_rows() const -> size_t;
-  auto get_cols() const -> size_t;
+  constexpr auto get_rows() const -> size_t;
+  constexpr auto get_cols() const -> size_t;
   auto get_data() const -> const storage_t&;
   auto get_data_ref() -> storage_t&;
   auto set(const size_t i, const size_t j, const double x) -> void;
   auto get(const size_t i, const size_t j) const -> double;
   auto get_ref(const size_t i, const size_t j) -> double&;
-  auto clone(void) -> Matrix; // !!! TODO !!!
 
   auto operator+(const Matrix& rhs) const -> Matrix;
   auto operator-(const Matrix& rhs) const -> Matrix;
@@ -68,10 +68,11 @@ struct Matrix {
 
   template <size_t P, size_t Q> // * (dot product)
   auto operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requires (M == P);
-  auto transpose() const -> Matrix<M, N>;
+  auto transpose(void) const -> Matrix<M, N>;
   auto submatrix(const size_t row, const size_t col) const -> Matrix<N-1, M-1>;
 
-  auto on_heap() const -> bool;
+  auto clone(void) const -> Matrix;
+  constexpr auto on_heap() const -> bool;
 private:
   data_t data;
 };
@@ -157,10 +158,10 @@ auto Matrix<N, M>::identity(void) -> Matrix requires (N == M) {
 }
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::get_rows() const -> size_t { return N; }
+constexpr auto Matrix<N, M>::get_rows() const -> size_t { return N; }
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::get_cols() const -> size_t { return M; }
+constexpr auto Matrix<N, M>::get_cols() const -> size_t { return M; }
 
 #define GET_DATA_COMMON_BODY \
   do {  \
@@ -295,7 +296,7 @@ auto Matrix<N, M>::operator*(const Matrix<P, Q>& rhs) const -> Matrix<N, Q> requ
 template <size_t N, size_t M>
 auto Matrix<N, M>::submatrix(const size_t row, const size_t col) const -> Matrix<N-1, M-1> {
   auto result = Matrix<N-1, M-1>();
-  
+
   int p = 0;
   for(int i = 0; i < N; ++i)
     for(int j = 0; j < M; ++j)
@@ -306,7 +307,7 @@ auto Matrix<N, M>::submatrix(const size_t row, const size_t col) const -> Matrix
 }
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::transpose() const -> Matrix<M, N> {
+auto Matrix<N, M>::transpose(void) const -> Matrix<M, N> {
   auto result = Matrix<M, N>();
 
   if constexpr (N == M) {
@@ -325,7 +326,14 @@ auto Matrix<N, M>::transpose() const -> Matrix<M, N> {
 }
 
 template <size_t N, size_t M>
-auto Matrix<N, M>::on_heap() const -> bool {
+auto Matrix<N, M>::clone(void) const -> Matrix {
+  auto result = Matrix<N, M>();
+  memcpy(result.get_data_ref().data(), get_data().data(), sizeof get_data());
+  return result;
+}
+
+template <size_t N, size_t M>
+constexpr auto Matrix<N, M>::on_heap() const -> bool {
   return std::is_same<Matrix::data_t, std::unique_ptr<Matrix::storage_t>>::value;
 }
 
