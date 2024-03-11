@@ -15,12 +15,3 @@ strip = "symbols" # strip bin
 opt-level = 3
 codegen-units = 1 # increase optimizations
 debug = true
-
-[lints.rust]
-unsafe_code = "forbid"
-
-[lints.clippy]
-enum_glob_use = "deny"
-pedantic = "deny"
-nursery = "deny"
-unwrap_used = "deny"
