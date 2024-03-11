@@ -1,0 +1,26 @@
+[workspace]
+resolver = '2'
+members = [
+  "libs/*",
+]
+
+[profile.release]
+opt-level = 3
+lto = true # enable lto
+codegen-units = 1 # increase optimizations
+panic = "abort" # disable stack unwind
+strip = "symbols" # strip bin
+
+[profile.bench]
+opt-level = 3
+codegen-units = 1 # increase optimizations
+debug = true
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+enum_glob_use = "deny"
+pedantic = "deny"
+nursery = "deny"
+unwrap_used = "deny"

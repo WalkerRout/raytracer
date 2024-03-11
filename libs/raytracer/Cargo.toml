@@ -1,0 +1,17 @@
+[package]
+name = "lib-raytracer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+#anyhow = "1.0.79"
+#thiserror = "1.0"
+#rayon = "1.8"
+
+[dev-dependencies]
+rstest = "0.18.2"
+criterion = { version = "0.3", features = ["html_reports"] }
+
+#[[bench]]
+#name = "bench_*"
+#harness = false # disable rustc harness for criterion
