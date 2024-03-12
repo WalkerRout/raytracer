@@ -81,6 +81,11 @@ mod tests {
     }
 
     #[rstest]
+    fn set_face_normal() { 
+      todo!()
+    }
+
+    #[rstest]
     #[case((0.0, 0.0, 0.0))]
     #[case((-1.0, 0.0, 3.0))]
     #[case((100.0, 100.0, 100.0))]
@@ -104,8 +109,8 @@ mod tests {
     #[case(Point3::new(5.0, 5.0, 0.0), Vector3::new(10.0, 0.0, 0.0),  0.5, Point3::new(10.0, 5.0, 0.0))]
     #[case(Point3::new(5.0, 5.0, 0.0), Vector3::new(10.0, 0.0, 0.0), -0.5, Point3::new(0.0, 5.0, 0.0))]
     fn at(
-      #[case] position: Point3, 
-      #[case] direction: Vector3, 
+      #[case] position: Point3,
+      #[case] direction: Vector3,
       #[case] d: f64, 
       #[case] expected: Point3
     ) {

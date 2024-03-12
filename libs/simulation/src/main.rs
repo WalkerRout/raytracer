@@ -9,7 +9,7 @@ use sphere::Sphere;
 
 fn main() {
   let path = "output.ppm";
-  let width = 5000;
+  let width = 10000;
   let aspect_ratio = 16.0 / 9.0;
   let mut scene = World::new(Config::new(width, aspect_ratio));
   scene.objects.push(Box::new(Sphere::new(0.5, Point3::new(0.0, 0.0, -1.0))));

@@ -102,7 +102,7 @@ impl DivAssign<f64> for Vector3 {
 
 impl fmt::Display for Vector3 {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "V3({}, {}, {})", self.x, self.y, self.z)
+    write!(f, "vec3({}, {}, {})", self.x, self.y, self.z)
   }
 }
 
@@ -259,30 +259,94 @@ mod tests {
     }
 
     #[rstest]
-    fn add_assign() {}
+    #[case(Vector3::new(1.0, 1.0, 1.0), Vector3::new(1.0, 1.0, 1.0))]
+    #[case(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 0.0))]
+    #[case(Vector3::new(1.0, -1.0, 0.0), Vector3::new(1.0, -1.0, 0.0))]
+    #[case(Vector3::new(5.0, 0.0, 0.0), Vector3::new(5.0, 0.0, 0.0))]
+    fn add_assign(#[case] addition: Vector3, #[case] expected: Vector3) {
+      let mut vec = Vector3::new(0.0, 0.0, 0.0);
+      vec += addition;
+      assert_eq!(vec, expected);
+    }
 
     #[rstest]
-    fn mul_assign_f64() {}
+    #[case(0.0, Vector3::new(0.0, 0.0, 0.0))]
+    #[case(1.0, Vector3::new(1.0, 1.0, 1.0))]
+    #[case(2.0, Vector3::new(2.0, 2.0, 2.0))]
+    #[case(-2.0, Vector3::new(-2.0, -2.0, -2.0))]
+    fn mul_assign_f64(#[case] coefficient: f64, #[case] expected: Vector3) {
+      let mut vec = Vector3::new(1.0, 1.0, 1.0);
+      vec *= coefficient;
+      assert_eq!(vec, expected);
+    }
 
     #[rstest]
-    fn div_assign_f64() {}
+    #[case(1.0, Vector3::new(1.0, 1.0, 1.0))]
+    #[case(2.0, Vector3::new(0.5, 0.5, 0.5))]
+    #[case(0.5, Vector3::new(2.0, 2.0, 2.0))]
+    #[case(-0.5, Vector3::new(-2.0, -2.0, -2.0))]
+    #[should_panic]
+    #[case(0.0, Vector3::new(0.0, 0.0, 0.0))]
+    fn div_assign_f64(#[case] coefficient: f64, #[case] expected: Vector3) {
+      let mut vec = Vector3::new(1.0, 1.0, 1.0);
+      vec /= coefficient;
+      assert_eq!(vec, expected);
+    }
   
     #[rstest]
-    fn display() {}
+    #[case((0.0, 0.0, 0.0), "vec3(0, 0, 0)")]
+    #[case((1.0, 2.0, 3.0), "vec3(1, 2, 3)")]
+    #[case((0.1, 0.2, 0.3), "vec3(0.1, 0.2, 0.3)")]
+    #[case((45.333, 2.81, 6.79), "vec3(45.333, 2.81, 6.79)")]
+    fn display(#[case] tuple: (f64, f64, f64), #[case] expected: &str) {
+      let vec = Vector3::from(tuple);
+      assert_eq!(vec.to_string(), expected);
+    }
 
     #[rstest]
-    fn add() {}
+    #[case(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0), Vector3::new(1.0, 1.0, 1.0))]
+    #[case(Vector3::new(0.0, 1.0, 0.0), Vector3::new(1.0, 0.0, 1.0), Vector3::new(1.0, 1.0, 1.0))]
+    #[case(Vector3::new(1.0, 1.0, 1.0), Vector3::new(-1.0, -1.0, -1.0), Vector3::new(0.0, 0.0, 0.0))]
+    #[case(Vector3::new(1.0, 1.0, 1.0), Vector3::new(1.0, 1.0, 1.0), Vector3::new(2.0, 2.0, 2.0))]
+    fn add(#[case] a: Vector3, #[case] b: Vector3, #[case] expected: Vector3) {
+      assert_eq!(a + b, expected);
+    }
 
     #[rstest]
-    fn sub() {}
+    #[case(Vector3::new(1.0, 1.0, 1.0), Vector3::new(1.0, 1.0, 1.0), Vector3::new(0.0, 0.0, 0.0))]
+    #[case(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0), Vector3::new(-1.0, -1.0, -1.0))]
+    #[case(Vector3::new(0.0, 1.0, 0.0), Vector3::new(1.0, 0.0, 1.0), Vector3::new(-1.0, 1.0, -1.0))]
+    #[case(Vector3::new(1.0, 1.0, 1.0), Vector3::new(-1.0, -1.0, -1.0), Vector3::new(2.0, 2.0, 2.0))]
+    fn sub(#[case] a: Vector3, #[case] b: Vector3, #[case] expected: Vector3) {
+      assert_eq!(a - b, expected);
+    }
 
     #[rstest]
-    fn mul_f64_f64_mul() {}
+    #[case(Vector3::new(1.0, 1.0, 1.0), 0.0, Vector3::new(0.0, 0.0, 0.0))]
+    #[case(Vector3::new(1.0, 2.0, 0.0), 1.0, Vector3::new(1.0, 2.0, 0.0))]
+    #[case(Vector3::new(0.0, 1.0, 0.0), 2.0, Vector3::new(0.0, 2.0, 0.0))]
+    #[case(Vector3::new(1.0, 1.0, 1.0), -1.0, Vector3::new(-1.0, -1.0, -1.0))]
+    fn mul_f64_f64_mul(#[case] a: Vector3, #[case] coefficient: f64, #[case] expected: Vector3) {
+      assert_eq!(a * coefficient, expected);
+      assert_eq!(coefficient * a, expected);
+    }
 
     #[rstest]
-    fn dot() {}
+    #[case(Vector3::new(1.0, 1.0, 1.0), Vector3::new(1.0, 1.0, 1.0), 3.0)]
+    #[case(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0), 0.0)]
+    #[case(Vector3::new(-1.0, 1.0, 0.0), Vector3::new(1.0, 1.0, 42.0), 0.0)]
+    #[case(Vector3::new(3.0, 4.0, 0.0), Vector3::new(1.0, 1.0, 1.0), 3.0+4.0)]
+    fn dot(#[case] a: Vector3, #[case] b: Vector3, #[case] expected: f64) {
+      assert_eq!(super::dot(a, b), expected);
+    }
 
     #[rstest]
-    fn cross() {}
+    #[case(Vector3::new(1.0, 1.0, 1.0), Vector3::new(1.0, 1.0, 1.0), Vector3::new(0.0, 0.0, 0.0))]
+    #[case(Vector3::new(0.0, 0.0, 0.0), Vector3::new(1.0, 1.0, 1.0), Vector3::new(0.0, 0.0, 0.0))]
+    #[case(Vector3::new(-1.0, 1.0, 0.0), Vector3::new(1.0, 1.0, 42.0), Vector3::new(42.0, 42.0, -2.0))]
+    #[case(Vector3::new(3.0, 4.0, 0.0), Vector3::new(1.0, 1.0, 1.0), Vector3::new(4.0, -3.0, -1.0))]
+    fn cross(#[case] a: Vector3, #[case] b: Vector3, #[case] expected: Vector3) {
+      assert_eq!(super::cross(a, b), expected);
+    }
   }
 }

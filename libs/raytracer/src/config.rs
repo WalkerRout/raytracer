@@ -35,3 +35,18 @@ impl Config {
     }
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use rstest::*;
+
+  mod config {
+    use super::*;
+
+    #[rstest]
+    fn new() {
+      todo!()
+    }
+  }
+}
