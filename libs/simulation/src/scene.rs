@@ -24,11 +24,11 @@ impl Scene for World {
   }
 
   fn save_to_path<A: AsRef<str>>(mut self, path: A) -> Result<(), RaytracerError> {
-    let mut destination = File::create(path.as_ref())?;
+    let mut destination = Vec::new();
     let Config { image_width, image_height, camera, .. } = self.config();
     let Camera { first_pixel, pixel_dx, pixel_dy, center, } = camera;
 
-    write!(&mut destination, "P3\n{} {}\n255\n", image_width, image_height)?;
+    writeln!(&mut destination, "P3\n{} {}\n255", image_width, image_height)?;
     for j in 0..image_height {
       for i in 0..image_width {
         let pixel_center = first_pixel + (i as f64 * pixel_dx) + (j as f64 * pixel_dy);
@@ -38,6 +38,10 @@ impl Scene for World {
         write_colour(&mut destination, &pixel_colour)?;
       }
     }
+
+    let mut file = File::create(path.as_ref())?;
+    file.write_all(&destination)?;
+
     Ok(())
   }
 }
