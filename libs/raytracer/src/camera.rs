@@ -101,6 +101,9 @@ mod tests {
   mod camera {
     use super::*;
 
+    use rand::SeedableRng;
+    use rand_chacha::ChaCha8Rng;
+
     #[rstest]
     #[case(10, 16.0/9.0, Vector3::new(0.4, 0.0, 0.0), Vector3::new(0.0, -0.4, 0.0), Point3::new(-1.8, 0.8, -1.0))]
     #[case(500, 2.0, Vector3::new(0.008, 0.0, 0.0), Vector3::new(0.0, -0.008, 0.0), Point3::new(-1.996, 0.996, -1.0))]
@@ -119,6 +122,22 @@ mod tests {
       assert_eq!(camera.config.pixel_dx, expected_pixel_dx);
       assert_eq!(camera.config.pixel_dy, expected_pixel_dy);
       assert_eq!(camera.config.first_pixel, expected_first_pixel);
+    }
+
+    #[rstest]
+    #[case((0, 0), Ray::new(Point3::default(), Vector3::new(-1.9454483046154663, 0.9239779673862012, -1.0)))]
+    #[case((49, 24), Ray::new(Point3::default(), Vector3::new(1.9745516953845337, -0.9960220326137987, -1.0)))]
+    #[case((10, 11), Ray::new(Point3::default(), Vector3::new(-1.1454483046154662, 0.043977967386201244, -1.0)))]
+    #[should_panic]
+    #[case((50, 0), Ray::new(Point3::default(), Vector3::default()))]
+    #[should_panic]
+    #[case((0, 25), Ray::new(Point3::default(), Vector3::default()))]
+    #[should_panic]
+    #[case((50, 25), Ray::new(Point3::default(), Vector3::default()))]
+    fn get_ray(#[case] indices: (usize, usize), #[case] expected: Ray) {
+      let mut rng = ChaCha8Rng::seed_from_u64(42);
+      let camera = Camera::new(50, 2.0);
+      assert_eq!(camera.get_ray(&mut rng, indices.0, indices.1), expected);
     }
 
     #[rstest]
@@ -148,6 +167,21 @@ mod tests {
           (1.0-a)*Colour::new(1.0, 1.0, 1.0) + a*Colour::new(0.5, 0.7, 1.0)
         };
         assert_eq!(camera.ray_colour(&ray, &mut toggle), expected_colour);
+      }
+    }
+
+    #[rstest]
+    fn pixel_sample_square() {
+      let mut rng = ChaCha8Rng::seed_from_u64(4);
+      let camera = Camera::new(50, 2.0);
+      let expected = vec![
+        Point3::new(0.01810289656719271, 0.03441457162334653, 0.0),
+        Point3::new(0.030279376124643455, -0.02092136846687394, 0.0),
+        Point3::new(-0.024847111286775157, -0.029056899399724348, 0.0),
+        Point3::new(-0.03411305294726887, 0.0015556901526561973, 0.0),
+      ];
+      for expected in expected {
+        assert_eq!(camera.pixel_sample_square(&mut rng), expected);
       }
     }
   }
