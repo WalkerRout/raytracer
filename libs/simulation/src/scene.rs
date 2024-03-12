@@ -24,6 +24,7 @@ impl Scene for World {
   }
 
   fn save_to_path<A: AsRef<str>>(mut self, path: A) -> Result<(), RaytracerError> {
+    // TODO: migrate this into Camera
     let mut destination = Vec::new();
     let Config { image_width, image_height, camera, .. } = self.config();
     let Camera { first_pixel, pixel_dx, pixel_dy, center, } = camera;
