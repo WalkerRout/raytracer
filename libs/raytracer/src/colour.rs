@@ -1,14 +1,18 @@
 
 use crate::*;
 
+use interval::Interval;
+
 use std::io::Write;
 
 pub type Colour = vector::Vector3;
 
-pub fn write_colour(f: &mut impl Write, colour: &Colour) -> Result<(), RaytracerError> {
-  let r = (colour.x.clamp(0.0, 1.0) * 255.0) as u8;
-  let g = (colour.y.clamp(0.0, 1.0) * 255.0) as u8;
-  let b = (colour.z.clamp(0.0, 1.0) * 255.0) as u8;
+pub fn write_colour(f: &mut impl Write, colour: &Colour, samples_per_pixel: usize) -> Result<(), RaytracerError> {
+  let interval = Interval::new(0.0, 1.0);
+  let scale = 1.0 / samples_per_pixel as f64;
+  let r = (interval.clamp(colour.x * scale) * 255.0) as u8;
+  let g = (interval.clamp(colour.y * scale) * 255.0) as u8;
+  let b = (interval.clamp(colour.z * scale) * 255.0) as u8;
   writeln!(f, "{r} {g} {b}")?;
   Ok(())
 }
@@ -38,7 +42,7 @@ mod tests {
 
       let mut dwriter = DemoWriter(String::new());
       let colour = Colour::from(tuple);
-      assert!(super::write_colour(&mut dwriter, &colour).is_ok());
+      assert!(super::write_colour(&mut dwriter, &colour, 1).is_ok());
       assert_eq!(dwriter.0, expected);
     }
   }

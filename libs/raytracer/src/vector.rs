@@ -166,7 +166,11 @@ impl Div<f64> for Vector3 {
   type Output = Self;
 
   fn div(self, other: f64) -> Self::Output {
-    (1.0/other) * self
+    if other == 0.0 { 
+      self
+    } else {
+      (1.0/other) * self
+    }
   }
 }
 
@@ -206,16 +210,17 @@ mod tests {
     }
 
     #[rstest]
-    fn into_unit() {
-      let vec = Vector3::new(1.0, 1.0, 1.0);
-      let expected = Vector3::new(0.5773502691896258, 0.5773502691896258, 0.5773502691896258);
+    #[case(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 0.0))]
+    #[case(Vector3::new(1.0, 1.0, 1.0), Vector3::new(0.5773502691896258, 0.5773502691896258, 0.5773502691896258))]
+    fn into_unit(#[case] vec: Vector3, #[case] expected: Vector3) {
       assert_eq!(vec.into_unit(), expected);
     }
 
     #[rstest]
-    fn length() {
-      let vec = Vector3::new(2.0, 2.0, 2.0);
-      let expected = (2.0*2.0 + 2.0*2.0 + 2.0*2.0_f64).sqrt();
+    #[case(Vector3::new(0.0, 0.0, 0.0), 0.0)]
+    #[case(Vector3::new(1.0, 0.0, 1.0), (1.0*1.0 + 1.0*1.0_f64).sqrt())]
+    #[case(Vector3::new(2.0, 2.0, 2.0), (2.0*2.0 + 2.0*2.0 + 2.0*2.0_f64).sqrt())]
+    fn length(#[case] vec: Vector3, #[case] expected: f64) {
       assert_eq!(vec.length(), expected);
     }
 

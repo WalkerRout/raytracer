@@ -6,10 +6,11 @@ use std::io;
 pub mod ray;
 pub mod point;
 pub mod scene;
-pub mod config;
 pub mod camera;
 pub mod colour;
 pub mod vector;
+pub mod interval;
+pub mod hittable;
 
 pub mod prelude {
   #[allow(unused_imports)]
@@ -17,10 +18,11 @@ pub mod prelude {
     ray::*,
     point::*,
     scene::*,
-    config::*,
     camera::*,
     colour::*,
     vector::*,
+    interval::*,
+    hittable::*,
     RaytracerError,
   };
 }

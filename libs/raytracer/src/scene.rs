@@ -1,9 +1,10 @@
 
 use crate::*;
 
-use config::Config;
+use camera::Camera;
+use hittable::Hittable;
 
-pub trait Scene {
-  fn config(&self) -> Config;
-  fn save_to_path<A: AsRef<str>>(self, path: A) -> Result<(), RaytracerError>;
+pub trait Scene/*: std::io::Write*/ {
+  /// Produce number of bytes written
+  fn render(&mut self, camera: &mut Camera, hittable: &mut impl Hittable) -> Result<usize, RaytracerError>;
 }
