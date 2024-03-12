@@ -35,6 +35,34 @@ impl Ray for StandardRay {
   }
 }
 
+#[derive(Debug, Default, Clone, Copy)]
+pub struct HitRecord {
+  pub position: Point3,
+  pub normal: Vector3,
+  pub t: f64,
+  pub front_face: bool,
+}
+
+impl HitRecord {
+  pub fn new(position: Point3, normal: Vector3, t: f64) -> Self {
+    Self {
+      position,
+      normal,
+      t,
+      front_face: false,
+    }
+  }
+
+  pub fn set_face_normal(&mut self, ray: &dyn Ray, outward_normal: Vector3) {
+    self.front_face = vector::dot(ray.direction(), outward_normal) < 0.0;
+    self.normal = if self.front_face { outward_normal } else { -outward_normal };
+  }
+}
+
+pub trait Hittable {
+  fn hit(&mut self, ray: &dyn Ray, ray_min_max: (f64, f64), record: &mut HitRecord) -> bool;
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
