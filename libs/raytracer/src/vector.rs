@@ -1,4 +1,6 @@
 
+use rand::Rng;
+
 #[allow(unused_imports)]
 use crate::*;
 
@@ -15,6 +17,46 @@ pub struct Vector3 {
 impl Vector3 {
   pub fn new(x: f64, y: f64, z: f64) -> Self {
     Self { x, y, z, }
+  }
+
+  fn random(rng: &mut impl Rng) -> Self {
+    Self {
+      x: rng.gen(),
+      y: rng.gen(),
+      z: rng.gen(),
+    }
+  }
+  
+  fn random_range(rng: &mut impl Rng, min: f64, max: f64) -> Self {
+    Self {
+      x: rng.gen_range(min..=max),
+      y: rng.gen_range(min..=max),
+      z: rng.gen_range(min..=max),
+    }
+  }
+
+  fn random_in_unit_sphere(rng: &mut impl Rng) -> Self {
+    loop {
+      let p = Vector3::random_range(rng, -1.0, 1.0);
+      if p.length_squared() < 1.0 {
+        return p;
+      }
+    }
+  }
+
+  fn random_unit_vector(rng: &mut impl Rng) -> Self {
+    let vec = Self::random_in_unit_sphere(rng);
+    vec.into_unit()
+  }
+
+  pub fn random_on_hemisphere(rng: &mut impl Rng, normal: Self) -> Self {
+    let on_unit_sphere = Self::random_unit_vector(rng);
+    // in same hemisphere as normal
+    if dot(on_unit_sphere, normal) > 0.0 {
+      on_unit_sphere
+    } else {
+      -on_unit_sphere
+    }
   }
 
   pub fn into_unit(self) -> Self {
@@ -194,6 +236,9 @@ mod tests {
   mod vector3 {
     use super::*;
 
+    use rand::SeedableRng;
+    use rand_chacha::ChaCha8Rng;
+
     #[rstest]
     fn new() {
       let (x, y, z) = (1.0, 2.0, 3.0);
@@ -206,6 +251,74 @@ mod tests {
         assert_eq!(vec.x, x);
         assert_eq!(vec.y, y);
         assert_eq!(vec.z, z);
+      }
+    }
+
+    #[rstest]
+    fn random() {
+      let mut rng = ChaCha8Rng::seed_from_u64(4);
+      let vec = Vector3::random(&mut rng);
+      let expected = Vector3::new(0.7262862070899089, 0.06981785470816837, 0.8784922015580432);
+      assert_eq!(vec, expected);
+      assert!(0.0 <= vec.x && vec.x <= 1.0);
+      assert!(0.0 <= vec.y && vec.y <= 1.0);
+      assert!(0.0 <= vec.z && vec.z <= 1.0);
+    }
+
+    #[rstest]
+    #[case(0.0, 1.0)]
+    #[case(-1.0, 1.0)]
+    #[case(-100.0, 100.0)]
+    #[case(0.0, 0.0)]
+    #[case(1000.0, 1000.0)]
+    #[case(-5.0, 5.0)]
+    #[case(0.4, 100.5)]
+    #[case(-0.2, 1.4)]
+    fn random_range(#[case] min: f64, #[case] max: f64) {
+      let mut rng = ChaCha8Rng::seed_from_u64(4);
+      let vec = Vector3::random_range(&mut rng, min, max);
+      assert!(min <= vec.x && vec.x <= max);
+      assert!(min <= vec.y && vec.y <= max);
+      assert!(min <= vec.z && vec.z <= max);
+    }
+
+    #[rstest]
+    fn random_in_unit_sphere() {
+      let mut rng = ChaCha8Rng::seed_from_u64(4);
+      for _ in 0..100 {
+        let vec = Vector3::random_in_unit_sphere(&mut rng);
+        assert!(vec.length_squared() < 1.0); // ensure x^2+y^2+z^2 < r^2
+      }
+    }
+
+    #[rstest]
+    fn random_unit_vector() {
+      let approx_equal = |a: f64, b: f64, dp: u8| -> bool {
+        let p = 10f64.powi(-(dp as i32));
+        (a-b).abs() < p
+      };
+
+      let mut rng = ChaCha8Rng::seed_from_u64(4);
+      for _ in 0..100 {
+        let vec = Vector3::random_unit_vector(&mut rng);
+        // ensure vector is normalized - len=1, sits on unit circle, not just inside
+        assert!(approx_equal(vec.length_squared(), 1.0, 8));
+      }
+    }
+
+    #[rstest]
+    fn random_on_hemisphere() {
+      let mut rng = ChaCha8Rng::seed_from_u64(4);
+      let cases = vec![
+        (Vector3::new(0.0, 1.0, 0.0), Vector3::new(0.9591020070758018, 0.04373884536535061, -0.2796609615753949)),
+        (Vector3::new(1.0, 0.0, 0.0), Vector3::new(0.36585754719776825, -0.5905345944631576, 0.7193171400020069)),
+        (Vector3::new(0.3, 0.4, 0.8), Vector3::new(0.8572096589838902, -0.486776053098652, 0.16804961967948961)),
+        (Vector3::new(0.0, 1.0, 1.0), Vector3::new(0.0430594550965176, 0.9989091454717781, -0.01806661062936974)),
+        (Vector3::new(1.0, 1.0, 1.0), Vector3::new(0.40120317108123704, -0.7967771411915138, 0.45186524848569454)),
+      ];
+      for (normal, expected) in cases {
+        let vec = Vector3::random_on_hemisphere(&mut rng, normal);
+        assert_eq!(vec, expected);
       }
     }
 

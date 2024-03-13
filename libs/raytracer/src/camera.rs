@@ -75,15 +75,18 @@ impl Camera {
     Ray::new(ray_origin, ray_direction)
   }
 
-  pub fn ray_colour(&self, ray: &Ray, hittable: &mut impl Hittable) -> Colour {
+  pub fn ray_colour(&self, rng: &mut impl Rng, ray: &Ray, hittable: &mut impl Hittable, depth: usize) -> Colour {
     let mut record = HitRecord::default();
-    if hittable.hit(ray, Interval::new(0.0, f64::INFINITY), &mut record) {
-      return 0.5 * (record.normal + Colour::new(1.0, 1.0, 1.0));
+    if depth == 0 {
+      Colour::new(0.0, 0.0, 0.0)
+    } else if hittable.hit(ray, Interval::new(0.001, f64::INFINITY), &mut record) {
+      let direction = Vector3::random_on_hemisphere(rng, record.normal);
+      0.5 * self.ray_colour(rng, &Ray::new(record.position, direction), hittable, depth-1)
+    } else {
+      let unit_direction = ray.direction().into_unit();
+      let a = 0.5*(unit_direction.y + 1.0);
+      (1.0-a)*Colour::new(1.0, 1.0, 1.0) + a*Colour::new(0.5, 0.7, 1.0)
     }
-
-    let unit_direction = ray.direction().into_unit();
-    let a = 0.5*(unit_direction.y + 1.0);
-    (1.0-a)*Colour::new(1.0, 1.0, 1.0) + a*Colour::new(0.5, 0.7, 1.0)
   }
 
   pub fn pixel_sample_square(&self, rng: &mut impl Rng) -> Point3 {
@@ -154,19 +157,23 @@ mod tests {
         }
       }
 
+      let mut rng = ChaCha8Rng::seed_from_u64(4);
       let camera = Camera::new(500, 16.0 / 9.0);
       let ray = Ray::default();
 
       let mut toggle = Toggle(true);
       for _ in 0..100 {
-        let expected_colour = if toggle.0 {
-          0.5 * Colour::new(1.0, 1.0, 1.0)
-        } else {
+        let expected_background = {
           let unit_direction = ray.direction().into_unit();
           let a = 0.5*(unit_direction.y + 1.0);
           (1.0-a)*Colour::new(1.0, 1.0, 1.0) + a*Colour::new(0.5, 0.7, 1.0)
         };
-        assert_eq!(camera.ray_colour(&ray, &mut toggle), expected_colour);
+        let colour = camera.ray_colour(&mut rng, &ray, &mut toggle, 10);
+        if toggle.0 {
+          assert_ne!(colour, expected_background);
+        } else {
+          assert_eq!(colour, expected_background);
+        }
       }
     }
 
