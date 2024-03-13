@@ -80,7 +80,7 @@ impl Camera {
     if depth == 0 {
       Colour::new(0.0, 0.0, 0.0)
     } else if hittable.hit(ray, Interval::new(0.001, f64::INFINITY), &mut record) {
-      let direction = Vector3::random_on_hemisphere(rng, record.normal);
+      let direction = record.normal + Vector3::random_unit_vector(rng);
       0.5 * self.ray_colour(rng, &Ray::new(record.position, direction), hittable, depth-1)
     } else {
       let unit_direction = ray.direction().into_unit();

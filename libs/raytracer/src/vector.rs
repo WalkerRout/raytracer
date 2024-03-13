@@ -19,7 +19,7 @@ impl Vector3 {
     Self { x, y, z, }
   }
 
-  fn random(rng: &mut impl Rng) -> Self {
+  pub fn random(rng: &mut impl Rng) -> Self {
     Self {
       x: rng.gen(),
       y: rng.gen(),
@@ -27,7 +27,7 @@ impl Vector3 {
     }
   }
   
-  fn random_range(rng: &mut impl Rng, min: f64, max: f64) -> Self {
+  pub fn random_range(rng: &mut impl Rng, min: f64, max: f64) -> Self {
     Self {
       x: rng.gen_range(min..=max),
       y: rng.gen_range(min..=max),
@@ -35,7 +35,7 @@ impl Vector3 {
     }
   }
 
-  fn random_in_unit_sphere(rng: &mut impl Rng) -> Self {
+  pub fn random_in_unit_sphere(rng: &mut impl Rng) -> Self {
     loop {
       let p = Vector3::random_range(rng, -1.0, 1.0);
       if p.length_squared() < 1.0 {
@@ -44,7 +44,7 @@ impl Vector3 {
     }
   }
 
-  fn random_unit_vector(rng: &mut impl Rng) -> Self {
+  pub fn random_unit_vector(rng: &mut impl Rng) -> Self {
     let vec = Self::random_in_unit_sphere(rng);
     vec.into_unit()
   }
