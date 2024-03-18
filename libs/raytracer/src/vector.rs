@@ -46,7 +46,7 @@ impl Vector3 {
 
   pub fn random_unit_vector(rng: &mut impl Rng) -> Self {
     let vec = Self::random_in_unit_sphere(rng);
-    vec.into_unit()
+    vec.to_unit()
   }
 
   pub fn random_on_hemisphere(rng: &mut impl Rng, normal: Self) -> Self {
@@ -59,7 +59,7 @@ impl Vector3 {
     }
   }
 
-  pub fn into_unit(self) -> Self {
+  pub fn to_unit(self) -> Self {
     self / self.length()
   }
 
@@ -228,6 +228,20 @@ pub fn cross(a: Vector3, b: Vector3) -> Vector3 {
   )
 }
 
+pub fn near_zero(a: Vector3) -> bool {
+  let s = 1.0e-8;
+  (a.x.abs() < s) && (a.y.abs() < s) && (a.z.abs() < s)
+}
+
+pub fn reflect(a: Vector3, b: Vector3) -> Vector3 {
+  // reflected dir is just a + 2(dist_from_a_inside_to_radius),
+  // where the length of dist_from_a_inside_to_radius is a*n,
+  // where n is normalized, a is possibly not.
+  // a + 2(dist_...) gives vector pointing from 2(dist_...) tip to a;
+  // want from a to 2(dist_...) tip, so subtract instead of add a + 2(dist_...)
+  a - 2.0*dot(a, b)*b
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -325,8 +339,8 @@ mod tests {
     #[rstest]
     #[case(Vector3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 0.0, 0.0))]
     #[case(Vector3::new(1.0, 1.0, 1.0), Vector3::new(0.5773502691896258, 0.5773502691896258, 0.5773502691896258))]
-    fn into_unit(#[case] vec: Vector3, #[case] expected: Vector3) {
-      assert_eq!(vec.into_unit(), expected);
+    fn to_unit(#[case] vec: Vector3, #[case] expected: Vector3) {
+      assert_eq!(vec.to_unit(), expected);
     }
 
     #[rstest]

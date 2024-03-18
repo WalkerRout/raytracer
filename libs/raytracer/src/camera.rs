@@ -80,11 +80,19 @@ impl Camera {
     if depth == 0 {
       Colour::new(0.0, 0.0, 0.0)
     } else if hittable.hit(ray, Interval::new(0.001, f64::INFINITY), &mut record) {
-      let direction = record.normal + Vector3::random_unit_vector(rng);
-      0.5 * self.ray_colour(rng, &Ray::new(record.position, direction), hittable, depth-1)
+      let mut scattered = Ray::default();
+      let mut attenuation = Colour::default();
+      if let Some(ref mat) = record.material {
+        if mat.scatter(&ray, &record, &mut attenuation, &mut scattered) {
+          return attenuation * self.ray_colour(rng, &scattered, hittable, depth-1);
+        }
+      }
+
+      Colour::new(0.0, 0.0, 0.0)
     } else {
-      let unit_direction = ray.direction().into_unit();
+      let unit_direction = ray.direction().to_unit();
       let a = 0.5*(unit_direction.y + 1.0);
+    
       (1.0-a)*Colour::new(1.0, 1.0, 1.0) + a*Colour::new(0.5, 0.7, 1.0)
     }
   }
@@ -106,6 +114,10 @@ mod tests {
 
     use rand::SeedableRng;
     use rand_chacha::ChaCha8Rng;
+
+    use material::Lambertian;
+
+    use std::rc::Rc;
 
     #[rstest]
     #[case(10, 16.0/9.0, Vector3::new(0.4, 0.0, 0.0), Vector3::new(0.0, -0.4, 0.0), Point3::new(-1.8, 0.8, -1.0))]
@@ -150,9 +162,13 @@ mod tests {
         fn hit(&mut self, _: &Ray, _: Interval, record: &mut HitRecord) -> bool {
           // ensure HitRecord stays as default!
           *record = HitRecord::default();
-          // Toggle .0
+          // toggle .0
           let res = self.0;
           self.0 = !self.0;
+          
+          // set material
+          record.material = Some(Rc::new(Lambertian::new(Colour::new(0.5, 0.1, 0.1))));
+
           res
         }
       }
@@ -164,7 +180,7 @@ mod tests {
       let mut toggle = Toggle(true);
       for _ in 0..100 {
         let expected_background = {
-          let unit_direction = ray.direction().into_unit();
+          let unit_direction = ray.direction().to_unit();
           let a = 0.5*(unit_direction.y + 1.0);
           (1.0-a)*Colour::new(1.0, 1.0, 1.0) + a*Colour::new(0.5, 0.7, 1.0)
         };

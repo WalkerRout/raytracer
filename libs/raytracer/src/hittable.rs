@@ -5,13 +5,20 @@ use ray::Ray;
 use point::Point3;
 use vector::Vector3;
 use interval::Interval;
+use material::Material;
 
-#[derive(Debug, Default, Clone, Copy)]
+use std::rc::Rc;
+
+#[derive(Default, Clone)]
 pub struct HitRecord {
+  // intersection position
   pub position: Point3,
+  // perpendicular to tangent at position
   pub normal: Vector3,
+  // scale distance of ray
   pub d: f64,
   pub front_face: bool,
+  pub material: Option<Rc<dyn Material>>,
 }
 
 impl HitRecord {
@@ -21,6 +28,7 @@ impl HitRecord {
       normal,
       d,
       front_face: false,
+      material: None,
     }
   }
 
@@ -33,7 +41,6 @@ impl HitRecord {
 pub trait Hittable {
   fn hit(&mut self, ray: &Ray, ray_i: Interval, record: &mut HitRecord) -> bool;
 }
-
 
 /// Default type for Vec of hittables
 pub type VecOfHittable = Vec<Box<dyn Hittable>>;
@@ -48,7 +55,7 @@ impl Hittable for VecOfHittable {
       if object.hit(ray, Interval::new(ray_i.min, closest_so_far), &mut temp_record) {
         hit_anything = true;
         closest_so_far = temp_record.d;
-        *record = temp_record;
+        *record = temp_record.clone();
       }
     }
 

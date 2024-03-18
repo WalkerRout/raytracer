@@ -10,6 +10,7 @@ pub mod camera;
 pub mod colour;
 pub mod vector;
 pub mod interval;
+pub mod material;
 pub mod hittable;
 
 pub mod prelude {
@@ -22,6 +23,7 @@ pub mod prelude {
     colour::*,
     vector::*,
     interval::*,
+    material::*,
     hittable::*,
     RaytracerError,
   };

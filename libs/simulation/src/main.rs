@@ -1,6 +1,7 @@
 
 use lib_raytracer::prelude::*;
 
+use std::rc::Rc;
 use std::error::Error;
 
 mod world;
@@ -16,9 +17,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
   let mut camera = Camera::new(width, aspect_ratio);
   let mut objects: VecOfHittable = {
+    let material_ground = Rc::new(Lambertian::new(Colour::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(Lambertian::new(Colour::new(0.7, 0.3, 0.3)));
+    let material_left   = Rc::new(Metal::new(Colour::new(0.8, 0.8, 0.8)));
+    let material_right  = Rc::new(Metal::new(Colour::new(0.8, 0.6, 0.2)));
+
     vec![
-      Box::new(Sphere::new(0.5, Point3::new(0.0, 0.0, -1.0))),
-      Box::new(Sphere::new(100.0, Point3::new(0.0, -100.5, -1.0))),
+      Box::new(Sphere::new(100.0, Point3::new(0.0, -100.5, -1.0), material_ground)),
+      Box::new(Sphere::new(0.5, Point3::new(0.0, 0.0, -1.0), material_center)),
+      Box::new(Sphere::new(0.5, Point3::new(-1.0, 0.0, -1.0), material_left)),
+      Box::new(Sphere::new(0.5, Point3::new(1.0, 0.0, -1.0), material_right)),
     ]
   };
 
