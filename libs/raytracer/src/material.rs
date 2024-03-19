@@ -1,4 +1,6 @@
 
+use rand::Rng;
+
 use crate::*;
 
 use ray::Ray;
@@ -40,8 +42,10 @@ impl Material for Lambertian {
     if vector::near_zero(direction) {
       direction = record.normal;
     }
+    
     *scattered = Ray::new(record.position, direction);
     *attenuation = self.albedo;
+    
     true
   }
 }
@@ -68,6 +72,7 @@ impl Material for Metal {
     let mut rng = rand::thread_rng();
     let reflected = vector::reflect(ray_in.direction().to_unit(), record.normal);
     let direction = reflected + self.fuzz_radius*Vector3::random_unit_vector(&mut rng);
+    
     *scattered = Ray::new(record.position, direction);
     *attenuation = self.albedo;
 
@@ -93,13 +98,35 @@ impl Material for Dielectric {
     attenuation: &mut Colour, 
     scattered: &mut Ray,
   ) -> bool {
+    let schlick_reflectance = |cos: f64, ref_index: f64| -> f64 {
+      let r0 = (1.0-ref_index) / (1.0+ref_index);
+      let r0 = r0 * r0;
+      r0 + (1.0-r0)*(1.0-cos).powi(5)
+    };
     let mut rng = rand::thread_rng();
-    let reflected = vector::reflect(ray_in.direction().to_unit(), record.normal);
-    let direction = reflected + self.fuzz_radius*Vector3::random_unit_vector(&mut rng);
-    *scattered = Ray::new(record.position, direction);
-    *attenuation = self.albedo;
+    let refraction_ratio = if record.front_face { 
+      1.0/self.refraction_index 
+    } else { 
+      self.refraction_index 
+    };
+    let unit_direction = ray_in.direction().to_unit();    
+    let cos_theta = vector::dot(-unit_direction, record.normal).min(1.0);
+    let sin_theta = (1.0 - cos_theta*cos_theta).sqrt();
+    
+    let no_solutions = refraction_ratio * sin_theta > 1.0;
+    let direction = if no_solutions || schlick_reflectance(cos_theta, refraction_ratio) > rng.gen::<f64>() {
+      // reflect
+      vector::reflect(unit_direction, record.normal)
+    } else {
+      // otherwise refract
+      vector::refract(unit_direction, record.normal, refraction_ratio)
+    };
 
-    vector::dot(scattered.direction(), record.normal) > 0.0
+
+    *attenuation = Colour::new(1.0, 1.0, 1.0);
+    *scattered = Ray::new(record.position, direction);
+    
+    true
   }
 }
 
@@ -126,6 +153,21 @@ mod tests {
   }
 
   mod metal {
+    #[allow(unused_imports)]
+    use super::*;
+
+    #[rstest]
+    fn new() {
+      todo!()
+    }
+
+    #[rstest]
+    fn scatter() {
+      todo!()
+    }
+  }
+
+  mod dielectric {
     #[allow(unused_imports)]
     use super::*;
 
