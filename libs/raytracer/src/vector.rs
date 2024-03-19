@@ -242,6 +242,12 @@ pub fn reflect(a: Vector3, b: Vector3) -> Vector3 {
   a - 2.0*dot(a, b)*b
 }
 
+pub fn refraction(r: Vector3, n: Vector3, inda_over_indb: f64) -> Vector3 {
+  let perp_component = inda_over_indb * (r + dot(-r, n).min(1.0)*n);
+  let para_component = -(1 - perp_component*perp_component*n).sqrt();
+  perp_component + para_component
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
