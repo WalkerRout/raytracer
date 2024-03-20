@@ -4,15 +4,17 @@ use lib_raytracer::prelude::*;
 use std::rc::Rc;
 use std::error::Error;
 
-mod world;
+mod ppm;
+mod png;
 mod sphere;
 
-use world::PpmWorld;
+use ppm::Ppm;
+use png::Png;
 use sphere::Sphere;
 
 fn main() -> Result<(), Box<dyn Error>> {
-  let path = "./output.ppm";
-  let width = 1000;
+  let scene_option = "png";
+  let width = 3000;
   let aspect_ratio = 16.0 / 9.0;
 
   let mut camera = Camera::new(width, aspect_ratio);
@@ -30,16 +32,30 @@ fn main() -> Result<(), Box<dyn Error>> {
     ]
   };
 
-  // PpmWorld
-  {
-    let mut ppm = PpmWorld::new();
-    println!("{}x{} image generating at {}...", 
-    camera.config.image_width, camera.config.image_height, path);
+  match scene_option {
+    "ppm" => {
+      let path = "./output.ppm";
+      let mut ppm = Ppm::new();
+      println!("{}x{} image generating at {}...", 
+        camera.config.image_width, camera.config.image_height, path);
 
-    let count = ppm.render(&mut camera, &mut objects)?;
-    println!("Image rendered with {count} bytes, attempting to save...");
-    ppm.save_to_path(path)?;
-    println!("Scene saved... DONE");
+      let count = ppm.render(&mut camera, &mut objects)?;
+      println!("Image rendered with {count} bytes, attempting to save...");
+      ppm.save_to_path(path)?;
+      println!("Scene saved... DONE");
+    },
+    "png" => {
+      let path = "./output.png";
+      let mut png = Png::new();
+      println!("{}x{} image generating at {}...", 
+        camera.config.image_width, camera.config.image_height, path);
+
+      let count = png.render(&mut camera, &mut objects)?;
+      println!("Image rendered with {count} bytes, attempting to save...");
+      png.save_to_path(path)?;
+      println!("Scene saved... DONE");
+    },
+    _ => ()
   }
 
   Ok(())

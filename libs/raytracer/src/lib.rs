@@ -36,4 +36,8 @@ pub enum RaytracerError {
     #[from]
     source: io::Error,
   },
+  #[error("unable to render scene")]
+  SceneRenderError,
+  #[error("unable to save scene")]
+  SceneSaveError,
 }
