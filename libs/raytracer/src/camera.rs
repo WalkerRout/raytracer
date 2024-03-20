@@ -117,7 +117,7 @@ mod tests {
 
     use material::Lambertian;
 
-    use std::rc::Rc;
+    use std::sync::Arc;
 
     #[rstest]
     #[case(10, 16.0/9.0, Vector3::new(0.4, 0.0, 0.0), Vector3::new(0.0, -0.4, 0.0), Point3::new(-1.8, 0.8, -1.0))]
@@ -167,7 +167,7 @@ mod tests {
           self.0 = !self.0;
           
           // set material
-          record.material = Some(Rc::new(Lambertian::new(Colour::new(0.5, 0.1, 0.1))));
+          record.material = Some(Arc::new(Lambertian::new(Colour::new(0.5, 0.1, 0.1))));
 
           res
         }

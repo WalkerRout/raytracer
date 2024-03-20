@@ -3,7 +3,22 @@ name = "simulation"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "simulation"
+path = "src/lib.rs"
+
 [dependencies]
 rand = "0.8.5"
 image = "0.25"
+rayon = "1.8"
+itertools = "0.12.1"
+criterion = { version = "0.3", features = ["html_reports"] }
 lib-raytracer = { path = "../raytracer" }
+
+[[bench]]
+name = "bench_ppm"
+harness = false
+
+[[bench]]
+name = "bench_png"
+harness = false

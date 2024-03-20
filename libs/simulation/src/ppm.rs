@@ -38,7 +38,7 @@ impl Scene for Ppm {
             let ray = camera.get_ray(&mut rng, i, j);
             pixel_colour + camera.ray_colour(&mut rng, &ray, hittable, max_depth)
           });
-        let pixel = colour_to_pixel(&pixel_colour, camera.config.samples_per_pixel)?;
+        let pixel = colour_to_pixel(&pixel_colour, camera.config.samples_per_pixel);
         writeln!(&mut self.bytes, "{} {} {}", pixel.r, pixel.g, pixel.b)?;
       }
     }

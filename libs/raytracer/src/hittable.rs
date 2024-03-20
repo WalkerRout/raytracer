@@ -7,7 +7,7 @@ use vector::Vector3;
 use interval::Interval;
 use material::Material;
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Default, Clone)]
 pub struct HitRecord {
@@ -18,7 +18,7 @@ pub struct HitRecord {
   // scale distance of ray
   pub d: f64,
   pub front_face: bool,
-  pub material: Option<Rc<dyn Material>>,
+  pub material: Option<Arc<dyn Material>>,
 }
 
 impl HitRecord {

@@ -1,17 +1,17 @@
 
 use lib_raytracer::prelude::*;
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Sphere {
   radius: f64,
   center: Point3,
-  material: Rc<dyn Material>,
+  material: Arc<dyn Material>,
 }
 
 impl Sphere {
-  pub fn new(radius: f64, center: Point3, material: Rc<dyn Material>) -> Self {
+  pub fn new(radius: f64, center: Point3, material: Arc<dyn Material>) -> Self {
     Self { radius, center, material, }
   }
 }
@@ -41,7 +41,7 @@ impl Hittable for Sphere {
     record.position = ray.at(record.d);
     let outward_normal = (record.position - self.center) / self.radius;
     record.set_face_normal(ray, outward_normal);
-    record.material = Some(Rc::clone(&self.material));
+    record.material = Some(Arc::clone(&self.material));
 
     true
   }

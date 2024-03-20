@@ -18,7 +18,7 @@ impl Pixel {
 
 pub type Colour = vector::Vector3;
 
-pub fn colour_to_pixel(colour: &Colour, samples_per_pixel: usize) -> Result<Pixel, RaytracerError> {
+pub fn colour_to_pixel(colour: &Colour, samples_per_pixel: usize) -> Pixel {
   let interval = Interval::new(0.0, 1.0);
   let scale = 1.0 / samples_per_pixel as f64;
   let scaled_x = linear_to_gamma(colour.x * scale);
@@ -29,7 +29,7 @@ pub fn colour_to_pixel(colour: &Colour, samples_per_pixel: usize) -> Result<Pixe
   let g = (interval.clamp(scaled_y) * 255.0) as u8;
   let b = (interval.clamp(scaled_z) * 255.0) as u8;
 
-  Ok(Pixel::new(r, g, b))
+  Pixel::new(r, g, b)
 }
 
 fn linear_to_gamma(lc: f64) -> f64 {
@@ -65,8 +65,7 @@ mod tests {
     fn colour_to_pixel(#[case] tuple: (f64, f64, f64), #[case] expected: Pixel) {
       let colour = Colour::from(tuple);
       let pixel = super::colour_to_pixel(&colour, 1);
-      assert!(pixel.is_ok());
-      assert_eq!(pixel.unwrap(), expected);
+      assert_eq!(pixel, expected);
     }
   }
 }
