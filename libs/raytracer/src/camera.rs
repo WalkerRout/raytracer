@@ -75,7 +75,7 @@ impl Camera {
     Ray::new(ray_origin, ray_direction)
   }
 
-  pub fn ray_colour(&self, rng: &mut impl Rng, ray: &Ray, hittable: &mut impl Hittable, depth: usize) -> Colour {
+  pub fn ray_colour(&self, _rng: &mut impl Rng, ray: &Ray, hittable: &mut impl Hittable, depth: usize) -> Colour {
     let mut record = HitRecord::default();
     if depth == 0 {
       Colour::new(0.0, 0.0, 0.0)
@@ -83,8 +83,8 @@ impl Camera {
       let mut scattered = Ray::default();
       let mut attenuation = Colour::default();
       if let Some(ref mat) = record.material {
-        if mat.scatter(&ray, &record, &mut attenuation, &mut scattered) {
-          return attenuation * self.ray_colour(rng, &scattered, hittable, depth-1);
+        if mat.scatter(ray, &record, &mut attenuation, &mut scattered) {
+          return attenuation * self.ray_colour(_rng, &scattered, hittable, depth-1);
         }
       }
 
