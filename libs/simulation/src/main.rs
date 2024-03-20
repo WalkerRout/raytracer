@@ -14,7 +14,7 @@ use sphere::Sphere;
 
 fn main() -> Result<(), Box<dyn Error>> {
   let scene_option = "png";
-  let width = 3000;
+  let width = 1000;
   let aspect_ratio = 16.0 / 9.0;
 
   let mut camera = Camera::new(width, aspect_ratio);

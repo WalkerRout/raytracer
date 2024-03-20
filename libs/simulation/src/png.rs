@@ -36,11 +36,11 @@ impl Scene for Png {
     
     for j in 0..image_height {
       for i in 0..image_width {
-        let mut pixel_colour = Colour::default();
-        for _ in 0..camera.config.samples_per_pixel {
-          let ray = camera.get_ray(&mut rng, i, j);
-          pixel_colour += camera.ray_colour(&mut rng, &ray, hittable, max_depth);
-        }
+        let pixel_colour = (0..camera.config.samples_per_pixel)
+          .fold(Colour::default(), |pixel_colour, _| {
+            let ray = camera.get_ray(&mut rng, i, j);
+            pixel_colour + camera.ray_colour(&mut rng, &ray, hittable, max_depth)
+          });
         let pixel = colour_to_pixel(&pixel_colour, camera.config.samples_per_pixel)?;
         let pixel = Rgba([pixel.r, pixel.g, pixel.b, 255]);
         image.put_pixel(i as u32, j as u32, pixel);

@@ -32,11 +32,11 @@ impl Scene for Ppm {
     writeln!(&mut self.bytes, "P3\n{} {}\n255", image_width, image_height)?;
     for j in 0..image_height {
       for i in 0..image_width {
-        let mut pixel_colour = Colour::default();
-        for _ in 0..camera.config.samples_per_pixel {
-          let ray = camera.get_ray(&mut rng, i, j);
-          pixel_colour += camera.ray_colour(&mut rng, &ray, hittable, max_depth);
-        }
+        let pixel_colour = (0..camera.config.samples_per_pixel)
+          .fold(Colour::default(), |pixel_colour, _| {
+            let ray = camera.get_ray(&mut rng, i, j);
+            pixel_colour + camera.ray_colour(&mut rng, &ray, hittable, max_depth)
+          });
         let pixel = colour_to_pixel(&pixel_colour, camera.config.samples_per_pixel)?;
         write!(&mut self.bytes, "{} {} {}\n", pixel.r, pixel.g, pixel.b)?;
       }
